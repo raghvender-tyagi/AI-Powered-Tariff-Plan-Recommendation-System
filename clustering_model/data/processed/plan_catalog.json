@@ -1,36 +1,253 @@
 {
-  "generatedAt": "2026-08-20T19:41:49.129Z",
-  "totalPlans": 2,
+  "generatedAt": "2026-08-21",
+  "totalPlans": 25,
+  "categories": [
+    "FLEX",
+    "PLAY",
+    "FAMILY",
+    "BUSINESS",
+    "PRIME"
+  ],
+  "source": "SmartTariff AI Differentiated Daily-Data Recharge Portfolio",
   "plans": [
     {
-      "id": "plan-0",
-      "clusterId": 0,
-      "name": "Smart Unlimited",
-      "price": 399,
-      "dataLimitGb": 25,
-      "voiceMinutes": 1200,
-      "description": "Balanced value plan for regular broadband and voice users.",
-      "recommendation": "Recommended for customers with steady data use and moderate-to-heavy calling habits.",
-      "targetSegment": "Moderate / General Users",
-      "retentionRisk": "Medium",
-      "expectedMonthlyRecharge": 376.99,
-      "estimatedAvgDataGb": 6.25,
-      "estimatedAvgVoiceMinutes": 232.48
+      "id": "FLEX_1",
+      "category": "FLEX",
+      "name": "Flex 1",
+      "price": 89,
+      "dailyDataGb": 0.5,
+      "validityDays": 28,
+      "differentiator": "3-day capped Data Bank"
     },
     {
-      "id": "plan-1",
-      "clusterId": 1,
-      "name": "Ultra Data Plus",
+      "id": "FLEX_2",
+      "category": "FLEX",
+      "name": "Flex 2",
+      "price": 129,
+      "dailyDataGb": 0.75,
+      "validityDays": 28,
+      "differentiator": "Weekend data boost option"
+    },
+    {
+      "id": "FLEX_3",
+      "category": "FLEX",
+      "name": "Flex 3",
+      "price": 169,
+      "dailyDataGb": 1,
+      "validityDays": 28,
+      "differentiator": "Unused-data rollover"
+    },
+    {
+      "id": "FLEX_4",
+      "category": "FLEX",
+      "name": "Flex 4",
+      "price": 219,
+      "dailyDataGb": 1.5,
+      "validityDays": 28,
+      "differentiator": "Low-cost Smart Boost"
+    },
+    {
+      "id": "FLEX_5",
+      "category": "FLEX",
+      "name": "Flex 5",
+      "price": 269,
+      "dailyDataGb": 2,
+      "validityDays": 28,
+      "differentiator": "Choose one benefit"
+    },
+
+    {
+      "id": "PLAY_1",
+      "category": "PLAY",
+      "name": "Play 1",
+      "price": 299,
+      "dailyDataGb": 1.5,
+      "validityDays": 28,
+      "differentiator": "Music benefit"
+    },
+    {
+      "id": "PLAY_2",
+      "category": "PLAY",
+      "name": "Play 2",
+      "price": 349,
+      "dailyDataGb": 2,
+      "validityDays": 28,
+      "differentiator": "Choose Music or OTT"
+    },
+    {
+      "id": "PLAY_3",
+      "category": "PLAY",
+      "name": "Play 3",
+      "price": 399,
+      "dailyDataGb": 2,
+      "validityDays": 28,
+      "differentiator": "OTT + weekend boost"
+    },
+    {
+      "id": "PLAY_4",
+      "category": "PLAY",
+      "name": "Play 4",
+      "price": 479,
+      "dailyDataGb": 2.5,
+      "validityDays": 56,
+      "differentiator": "OTT + Music"
+    },
+    {
+      "id": "PLAY_5",
+      "category": "PLAY",
+      "name": "Play 5",
+      "price": 579,
+      "dailyDataGb": 3,
+      "validityDays": 56,
+      "differentiator": "Premium entertainment bundle"
+    },
+
+    {
+      "id": "FAMILY_1",
+      "category": "FAMILY",
+      "name": "Family 1",
+      "price": 499,
+      "members": 2,
+      "dailySharedPoolGb": 1.5,
+      "validityDays": 28,
+      "differentiator": "Shared pool"
+    },
+    {
+      "id": "FAMILY_2",
+      "category": "FAMILY",
+      "name": "Family 2",
       "price": 699,
-      "dataLimitGb": 40,
-      "voiceMinutes": 2000,
-      "description": "High-volume data and streaming plan designed for power users.",
-      "recommendation": "Recommended for customers with intensive streaming, hotspot, and heavy mobile data behavior.",
-      "targetSegment": "Heavy Data & Streaming Users",
-      "retentionRisk": "Medium",
-      "expectedMonthlyRecharge": 787.9,
-      "estimatedAvgDataGb": 32.57,
-      "estimatedAvgVoiceMinutes": 187.01
+      "members": 3,
+      "dailySharedPoolGb": 2.5,
+      "validityDays": 28,
+      "differentiator": "Usage allocation"
+    },
+    {
+      "id": "FAMILY_3",
+      "category": "FAMILY",
+      "name": "Family 3",
+      "price": 899,
+      "members": 4,
+      "dailySharedPoolGb": 3.5,
+      "validityDays": 28,
+      "differentiator": "Pool + OTT"
+    },
+    {
+      "id": "FAMILY_4",
+      "category": "FAMILY",
+      "name": "Family 4",
+      "price": 1099,
+      "members": 5,
+      "dailySharedPoolGb": 5,
+      "validityDays": 28,
+      "differentiator": "Parental controls"
+    },
+    {
+      "id": "FAMILY_5",
+      "category": "FAMILY",
+      "name": "Family 5",
+      "price": 1499,
+      "members": 6,
+      "dailySharedPoolGb": 7,
+      "validityDays": 56,
+      "differentiator": "Premium family bundle"
+    },
+
+    {
+      "id": "BUSINESS_1",
+      "category": "BUSINESS",
+      "name": "Business 1",
+      "price": 999,
+      "employees": 5,
+      "dailyPoolGb": 5,
+      "validityDays": 28,
+      "differentiator": "Central billing"
+    },
+    {
+      "id": "BUSINESS_2",
+      "category": "BUSINESS",
+      "name": "Business 2",
+      "price": 1799,
+      "employees": 10,
+      "dailyPoolGb": 10,
+      "validityDays": 28,
+      "differentiator": "Admin dashboard"
+    },
+    {
+      "id": "BUSINESS_3",
+      "category": "BUSINESS",
+      "name": "Business 3",
+      "price": 3499,
+      "employees": 25,
+      "dailyPoolGb": 20,
+      "validityDays": 28,
+      "differentiator": "Employee management"
+    },
+    {
+      "id": "BUSINESS_4",
+      "category": "BUSINESS",
+      "name": "Business 4",
+      "price": 5999,
+      "employees": 50,
+      "dailyPoolGb": 40,
+      "validityDays": 56,
+      "differentiator": "Priority support"
+    },
+    {
+      "id": "BUSINESS_5",
+      "category": "BUSINESS",
+      "name": "Business 5",
+      "price": 9999,
+      "employees": 100,
+      "dailyPoolGb": 80,
+      "validityDays": 84,
+      "differentiator": "Enterprise controls"
+    },
+
+    {
+      "id": "PRIME_1",
+      "category": "PRIME",
+      "name": "Prime 1",
+      "price": 699,
+      "dailyDataGb": 2.5,
+      "validityDays": 28,
+      "differentiator": "Choose 1 premium benefit"
+    },
+    {
+      "id": "PRIME_2",
+      "category": "PRIME",
+      "name": "Prime 2",
+      "price": 899,
+      "dailyDataGb": 3,
+      "validityDays": 56,
+      "differentiator": "Choose 2 benefits"
+    },
+    {
+      "id": "PRIME_3",
+      "category": "PRIME",
+      "name": "Prime 3",
+      "price": 1199,
+      "dailyDataGb": 4,
+      "validityDays": 84,
+      "differentiator": "Choose 2 premium benefits"
+    },
+    {
+      "id": "PRIME_4",
+      "category": "PRIME",
+      "name": "Prime 4",
+      "price": 1499,
+      "dailyDataGb": 5,
+      "validityDays": 180,
+      "differentiator": "Choose 3 benefits"
+    },
+    {
+      "id": "PRIME_5",
+      "category": "PRIME",
+      "name": "Prime 5",
+      "price": 2499,
+      "dailyDataGb": 7,
+      "validityDays": 365,
+      "differentiator": "Choose 4 benefits"
     }
   ]
 }
