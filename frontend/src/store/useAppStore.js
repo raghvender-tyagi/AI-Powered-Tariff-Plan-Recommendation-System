@@ -18,6 +18,18 @@ export const useAppStore = create(
       customerId: 'cust_demo_01',
       isAdmin: false,
 
+      // Day & Night Theme
+      isDarkMode: true,
+      toggleDarkMode: () =>
+        set((state) => {
+          const next = !state.isDarkMode;
+          if (typeof window !== 'undefined') {
+            if (next) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+          }
+          return { isDarkMode: next };
+        }),
+
       // Onboarding profile (mirrors extract_profile tool schema, section 6.6)
       onboardingComplete: false,
       profile: defaultProfile,
@@ -55,6 +67,7 @@ export const useAppStore = create(
         onboardingComplete: state.onboardingComplete,
         profile: state.profile,
         lastRecommendations: state.lastRecommendations,
+        isDarkMode: state.isDarkMode,
       }),
     },
   ),

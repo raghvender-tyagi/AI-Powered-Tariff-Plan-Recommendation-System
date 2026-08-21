@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -13,6 +13,8 @@ import {
   Menu,
   X,
   Wifi,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { initials } from '@/lib/format';
@@ -31,13 +33,14 @@ const NAV_ITEMS = [
 ];
 
 export function Logo({ className = '' }) {
+  const isDarkMode = useAppStore((s) => s.isDarkMode);
   return (
     <Link to="/" className={`flex items-center gap-2 shrink-0 group ${className}`} aria-label="Tariff Twin home">
       <span className="relative h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400 to-green-400 flex items-center justify-center shadow-[0_0_0_1px_rgba(255,255,255,0.15)_inset]">
         <Wifi className="h-4 w-4 text-base-950" strokeWidth={2.5} />
       </span>
-      <span className="font-display font-bold text-base-50 text-lg tracking-tight">
-        Tariff<span className="text-cyan-400">Twin</span>
+      <span className={`font-display font-bold text-lg tracking-tight ${isDarkMode ? 'text-base-50' : 'text-slate-900'}`}>
+        Tariff<span className="text-cyan-500">Twin</span>
       </span>
     </Link>
   );
@@ -47,12 +50,26 @@ export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const customerName = useAppStore((s) => s.customerName);
+  const isDarkMode = useAppStore((s) => s.isDarkMode);
+  const toggleDarkMode = useAppStore((s) => s.toggleDarkMode);
   const location = useLocation();
   const onAdvisorPage = location.pathname === '/app/advisor';
 
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
   return (
-    <div className="min-h-screen flex flex-col bg-base-950">
-      <header className="sticky top-0 z-40 border-b border-base-700/70 bg-base-950/85 backdrop-blur-lg">
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
+      isDarkMode ? 'bg-base-950 text-base-100' : 'bg-slate-50 text-slate-900'
+    }`}>
+      <header className={`sticky top-0 z-40 border-b backdrop-blur-lg transition-colors ${
+        isDarkMode ? 'border-base-700/70 bg-base-950/85 text-base-50' : 'border-slate-200 bg-white/85 text-slate-900'
+      }`}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-4">
           <Logo />
           <nav className="hidden lg:flex items-center gap-1 ml-4 overflow-x-auto scrollbar-thin" aria-label="Primary">
@@ -62,7 +79,9 @@ export function AppShell() {
                 to={item.to}
                 className={({ isActive }) =>
                   `flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
-                    isActive ? 'bg-base-800 text-cyan-300' : 'text-base-300 hover:text-base-50 hover:bg-base-800/60'
+                    isActive 
+                      ? isDarkMode ? 'bg-base-800 text-cyan-300' : 'bg-sky-100 text-blue-700 font-bold'
+                      : isDarkMode ? 'text-base-300 hover:text-base-50 hover:bg-base-800/60' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`
                 }
               >
@@ -72,14 +91,37 @@ export function AppShell() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 rounded-full border border-base-700 bg-base-900 pl-1 pr-3 py-1">
+            <button
+              onClick={toggleDarkMode}
+              className={`p-2 rounded-full border transition-all flex items-center gap-1.5 text-xs font-bold ${
+                isDarkMode
+                  ? 'border-base-700 bg-base-900 text-amber-300 hover:bg-base-800'
+                  : 'border-slate-200 bg-sky-50 text-slate-800 hover:bg-sky-100'
+              }`}
+              aria-label="Toggle Day or Night Mode"
+            >
+              {isDarkMode ? (
+                <>
+                  <Moon className="h-4 w-4 text-cyan-300 fill-cyan-300/20" />
+                  <span className="text-cyan-300 hidden sm:inline">Night</span>
+                </>
+              ) : (
+                <>
+                  <Sun className="h-4 w-4 text-amber-500 fill-amber-400/20" />
+                  <span className="text-amber-600 hidden sm:inline">Day</span>
+                </>
+              )}
+            </button>
+            <div className={`hidden sm:flex items-center gap-2 rounded-full border pl-1 pr-3 py-1 ${
+              isDarkMode ? 'border-base-700 bg-base-900 text-base-200' : 'border-slate-200 bg-white text-slate-700'
+            }`}>
               <span className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-xs font-bold text-base-950">
                 {initials(customerName) || 'U'}
               </span>
-              <span className="text-sm text-base-200">{customerName}</span>
+              <span className="text-sm font-semibold">{customerName}</span>
             </div>
             <button
-              className="lg:hidden rounded-lg p-2 text-base-200 hover:bg-base-800"
+              className={`lg:hidden rounded-lg p-2 ${isDarkMode ? 'text-base-200 hover:bg-base-800' : 'text-slate-700 hover:bg-slate-100'}`}
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
@@ -94,7 +136,7 @@ export function AppShell() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="lg:hidden overflow-hidden border-t border-base-700/70"
+              className={`lg:hidden overflow-hidden border-t ${isDarkMode ? 'border-base-700/70' : 'border-slate-200'}`}
               aria-label="Mobile"
             >
               <div className="px-4 py-3 flex flex-col gap-1">
@@ -105,7 +147,9 @@ export function AppShell() {
                     onClick={() => setMobileOpen(false)}
                     className={({ isActive }) =>
                       `flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium ${
-                        isActive ? 'bg-base-800 text-cyan-300' : 'text-base-300'
+                        isActive 
+                          ? isDarkMode ? 'bg-base-800 text-cyan-300' : 'bg-sky-100 text-blue-700'
+                          : isDarkMode ? 'text-base-300' : 'text-slate-700'
                       }`
                     }
                   >
@@ -119,7 +163,7 @@ export function AppShell() {
         </AnimatePresence>
       </header>
 
-      <main className="flex-1 bg-grid">
+      <main className="flex-1">
         <motion.div
           key={location.pathname}
           initial={{ opacity: 0, y: 8 }}
@@ -131,8 +175,8 @@ export function AppShell() {
         </motion.div>
       </main>
 
-      <footer className="border-t border-base-700/70 py-6">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-base-400">
+      <footer className={`border-t py-6 transition-colors ${isDarkMode ? 'border-base-700/70 text-base-400' : 'border-slate-200 text-slate-500 bg-white'}`}>
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
           <p>© {new Date().getFullYear()} Tariff Twin. Recommendations are AI-assisted estimates, not financial advice.</p>
           <p>Built on the AI-Powered Tariff Plan Recommendation System.</p>
         </div>
