@@ -1,0 +1,38 @@
+{
+  "evaluation_method": "K-Means vs Gaussian mixture-style alternative",
+  "original_customers": 10000,
+  "evaluation_sample": 2000,
+  "feature_count": 11,
+  "evaluated_features": [
+    "monthly_data_gb",
+    "streaming_hours",
+    "hotspot_data_gb",
+    "monthly_voice_minutes",
+    "avg_minutes_per_call",
+    "monthly_sms",
+    "international_minutes",
+    "roaming_voice_minutes",
+    "roaming_data_gb",
+    "monthly_recharge",
+    "tenure_months"
+  ],
+  "kmeans": {
+    "method": "K-Means",
+    "clusters": 2,
+    "silhouette": 0.2999,
+    "production": true
+  },
+  "gaussian_alternative": {
+    "method": "Gaussian mixture-style soft clustering",
+    "clusters": 2,
+    "silhouette": 0.22586726712124308,
+    "cluster_sizes": {
+      "0": 1642,
+      "1": 358
+    },
+    "production": false
+  },
+  "preferred_method": "K-Means",
+  "production_method": "K-Means",
+  "conclusion": "K-Means provides the stronger silhouette score and remains the production clustering method."
+}

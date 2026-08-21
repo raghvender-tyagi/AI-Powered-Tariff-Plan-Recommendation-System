@@ -1,0 +1,20 @@
+{
+  "customerId": "CUST00001",
+  "mode": "personal",
+  "behavior": {
+    "monthlyDataGb": 2.7,
+    "streamingHours": 5.01,
+    "hotspotDataGb": 0.15,
+    "monthlyVoiceMinutes": 85.33,
+    "totalCalls": 40,
+    "monthlySms": 89,
+    "internationalMinutes": 1.71,
+    "roamingDataGb": 0.55,
+    "monthlyRecharge": 382.3,
+    "tenureMonths": 57.36164617187416
+  },
+  "top3": [],
+  "smartBoost": null,
+  "cluster": 0,
+  "clusterPersona": "Moderate / General Users"
+}

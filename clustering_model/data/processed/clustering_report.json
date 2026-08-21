@@ -1,0 +1,65 @@
+{
+  "generatedAt": "2026-08-21T05:08:23.608Z",
+  "customers": 10000,
+  "features": [
+    "monthly_data_gb",
+    "streaming_hours",
+    "hotspot_data_gb",
+    "monthly_voice_minutes",
+    "avg_minutes_per_call",
+    "monthly_sms",
+    "international_minutes",
+    "roaming_voice_minutes",
+    "roaming_data_gb",
+    "monthly_recharge",
+    "tenure_months"
+  ],
+  "kRange": {
+    "min": 2,
+    "max": 10
+  },
+  "optimalK": 2,
+  "bestSilhouetteScore": 0.2999,
+  "silhouetteResults": [
+    {
+      "k": 2,
+      "silhouette": 0.2999
+    },
+    {
+      "k": 3,
+      "silhouette": 0.2484
+    },
+    {
+      "k": 4,
+      "silhouette": 0.2487
+    },
+    {
+      "k": 5,
+      "silhouette": 0.2648
+    },
+    {
+      "k": 6,
+      "silhouette": 0.2543
+    },
+    {
+      "k": 7,
+      "silhouette": 0.2397
+    },
+    {
+      "k": 8,
+      "silhouette": 0.2287
+    },
+    {
+      "k": 9,
+      "silhouette": 0.2093
+    },
+    {
+      "k": 10,
+      "silhouette": 0.1996
+    }
+  ],
+  "clusterSizes": {
+    "0": 7172,
+    "1": 2828
+  }
+}

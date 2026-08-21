@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-08-20T19:41:49.129Z",
+  "totalPlans": 2,
+  "plans": [
+    {
+      "id": "plan-0",
+      "clusterId": 0,
+      "name": "Smart Unlimited",
+      "price": 399,
+      "dataLimitGb": 25,
+      "voiceMinutes": 1200,
+      "description": "Balanced value plan for regular broadband and voice users.",
+      "recommendation": "Recommended for customers with steady data use and moderate-to-heavy calling habits.",
+      "targetSegment": "Moderate / General Users",
+      "retentionRisk": "Medium",
+      "expectedMonthlyRecharge": 376.99,
+      "estimatedAvgDataGb": 6.25,
+      "estimatedAvgVoiceMinutes": 232.48
+    },
+    {
+      "id": "plan-1",
+      "clusterId": 1,
+      "name": "Ultra Data Plus",
+      "price": 699,
+      "dataLimitGb": 40,
+      "voiceMinutes": 2000,
+      "description": "High-volume data and streaming plan designed for power users.",
+      "recommendation": "Recommended for customers with intensive streaming, hotspot, and heavy mobile data behavior.",
+      "targetSegment": "Heavy Data & Streaming Users",
+      "retentionRisk": "Medium",
+      "expectedMonthlyRecharge": 787.9,
+      "estimatedAvgDataGb": 32.57,
+      "estimatedAvgVoiceMinutes": 187.01
+    }
+  ]
+}
