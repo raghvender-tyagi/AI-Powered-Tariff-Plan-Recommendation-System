@@ -1,0 +1,264 @@
+{
+  "generatedAt": "2026-08-21T10:32:12.314Z",
+  "totalPlans": 25,
+  "totalClusters": 2,
+  "categories": [
+    "FLEX",
+    "PLAY",
+    "FAMILY",
+    "BUSINESS",
+    "PRIME"
+  ],
+  "mappings": [
+    {
+      "planId": "FLEX_1",
+      "planName": "Flex 1",
+      "category": "FLEX",
+      "price": 89,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "FLEX_2",
+      "planName": "Flex 2",
+      "category": "FLEX",
+      "price": 129,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "FLEX_3",
+      "planName": "Flex 3",
+      "category": "FLEX",
+      "price": 169,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "FLEX_4",
+      "planName": "Flex 4",
+      "category": "FLEX",
+      "price": 219,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "FLEX_5",
+      "planName": "Flex 5",
+      "category": "FLEX",
+      "price": 269,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "PLAY_1",
+      "planName": "Play 1",
+      "category": "PLAY",
+      "price": 299,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    },
+    {
+      "planId": "PLAY_2",
+      "planName": "Play 2",
+      "category": "PLAY",
+      "price": 349,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    },
+    {
+      "planId": "PLAY_3",
+      "planName": "Play 3",
+      "category": "PLAY",
+      "price": 399,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    },
+    {
+      "planId": "PLAY_4",
+      "planName": "Play 4",
+      "category": "PLAY",
+      "price": 479,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    },
+    {
+      "planId": "PLAY_5",
+      "planName": "Play 5",
+      "category": "PLAY",
+      "price": 579,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    },
+    {
+      "planId": "FAMILY_1",
+      "planName": "Family 1",
+      "category": "FAMILY",
+      "price": 499,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "FAMILY_2",
+      "planName": "Family 2",
+      "category": "FAMILY",
+      "price": 699,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "FAMILY_3",
+      "planName": "Family 3",
+      "category": "FAMILY",
+      "price": 899,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "FAMILY_4",
+      "planName": "Family 4",
+      "category": "FAMILY",
+      "price": 1099,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "FAMILY_5",
+      "planName": "Family 5",
+      "category": "FAMILY",
+      "price": 1499,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "BUSINESS_1",
+      "planName": "Business 1",
+      "category": "BUSINESS",
+      "price": 999,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "BUSINESS_2",
+      "planName": "Business 2",
+      "category": "BUSINESS",
+      "price": 1799,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "BUSINESS_3",
+      "planName": "Business 3",
+      "category": "BUSINESS",
+      "price": 3499,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "BUSINESS_4",
+      "planName": "Business 4",
+      "category": "BUSINESS",
+      "price": 5999,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "BUSINESS_5",
+      "planName": "Business 5",
+      "category": "BUSINESS",
+      "price": 9999,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    {
+      "planId": "PRIME_1",
+      "planName": "Prime 1",
+      "category": "PRIME",
+      "price": 699,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    },
+    {
+      "planId": "PRIME_2",
+      "planName": "Prime 2",
+      "category": "PRIME",
+      "price": 899,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    },
+    {
+      "planId": "PRIME_3",
+      "planName": "Prime 3",
+      "category": "PRIME",
+      "price": 1199,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    },
+    {
+      "planId": "PRIME_4",
+      "planName": "Prime 4",
+      "category": "PRIME",
+      "price": 1499,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    },
+    {
+      "planId": "PRIME_5",
+      "planName": "Prime 5",
+      "category": "PRIME",
+      "price": 2499,
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    }
+  ]
+}

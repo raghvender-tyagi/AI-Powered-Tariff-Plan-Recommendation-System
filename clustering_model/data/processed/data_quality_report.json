@@ -1,0 +1,19 @@
+{
+  "dataset": "telecom_customer_usage_dummy_dataset.csv",
+  "rawRows": 10000,
+  "exactDuplicatesRemoved": 0,
+  "invalidRowsRemoved": 0,
+  "finalCleanRows": 10000,
+  "uniqueCustomers": 10000,
+  "qualityChecks": {
+    "missingValues": 0,
+    "invalidNumericValues": 0,
+    "negativeValues": 0,
+    "invalidCategoricalValues": 0,
+    "invalidChurnValues": 0,
+    "logicalErrors": 0
+  },
+  "validationStatus": "PASS",
+  "output": "C:\\Users\\MAYANK SWAROOP\\OneDrive\\Desktop\\tariff recommendation system\\data\\processed\\cleaned_telecom.csv",
+  "generatedAt": "2026-08-20T18:19:46.915Z"
+}

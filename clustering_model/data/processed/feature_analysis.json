@@ -1,0 +1,396 @@
+{
+  "generatedAt": "2026-08-20T18:59:48.931Z",
+  "customers": 10000,
+  "excludedFromClustering": [
+    "customer_id",
+    "churn"
+  ],
+  "numericFeatures": [
+    "age",
+    "tenure_months",
+    "monthly_data_gb",
+    "avg_daily_data_gb",
+    "streaming_hours",
+    "hotspot_data_gb",
+    "streaming_data_ratio",
+    "hotspot_data_ratio",
+    "monthly_voice_minutes",
+    "total_calls",
+    "incoming_calls",
+    "outgoing_calls",
+    "avg_minutes_per_call",
+    "monthly_sms",
+    "international_minutes",
+    "roaming_voice_minutes",
+    "roaming_data_gb",
+    "international_voice_ratio",
+    "roaming_voice_ratio",
+    "roaming_data_ratio",
+    "monthly_recharge",
+    "total_usage_events",
+    "calls_per_rupee",
+    "data_per_rupee"
+  ],
+  "highlyCorrelatedPairs": [
+    {
+      "featureA": "monthly_data_gb",
+      "featureB": "avg_daily_data_gb",
+      "correlation": 1
+    },
+    {
+      "featureA": "monthly_data_gb",
+      "featureB": "streaming_hours",
+      "correlation": 0.9529
+    },
+    {
+      "featureA": "monthly_data_gb",
+      "featureB": "hotspot_data_gb",
+      "correlation": 0.8734
+    },
+    {
+      "featureA": "monthly_data_gb",
+      "featureB": "data_per_rupee",
+      "correlation": 0.9034
+    },
+    {
+      "featureA": "avg_daily_data_gb",
+      "featureB": "streaming_hours",
+      "correlation": 0.9529
+    },
+    {
+      "featureA": "avg_daily_data_gb",
+      "featureB": "hotspot_data_gb",
+      "correlation": 0.8734
+    },
+    {
+      "featureA": "avg_daily_data_gb",
+      "featureB": "data_per_rupee",
+      "correlation": 0.9034
+    },
+    {
+      "featureA": "streaming_hours",
+      "featureB": "hotspot_data_gb",
+      "correlation": 0.8344
+    },
+    {
+      "featureA": "streaming_hours",
+      "featureB": "data_per_rupee",
+      "correlation": 0.8629
+    },
+    {
+      "featureA": "monthly_voice_minutes",
+      "featureB": "total_calls",
+      "correlation": 0.9111
+    },
+    {
+      "featureA": "monthly_voice_minutes",
+      "featureB": "incoming_calls",
+      "correlation": 0.8985
+    },
+    {
+      "featureA": "monthly_voice_minutes",
+      "featureB": "outgoing_calls",
+      "correlation": 0.894
+    },
+    {
+      "featureA": "monthly_voice_minutes",
+      "featureB": "international_minutes",
+      "correlation": 0.8127
+    },
+    {
+      "featureA": "monthly_voice_minutes",
+      "featureB": "total_usage_events",
+      "correlation": 0.9076
+    },
+    {
+      "featureA": "total_calls",
+      "featureB": "incoming_calls",
+      "correlation": 0.9853
+    },
+    {
+      "featureA": "total_calls",
+      "featureB": "outgoing_calls",
+      "correlation": 0.9822
+    },
+    {
+      "featureA": "total_calls",
+      "featureB": "total_usage_events",
+      "correlation": 0.9828
+    },
+    {
+      "featureA": "total_calls",
+      "featureB": "calls_per_rupee",
+      "correlation": 0.828
+    },
+    {
+      "featureA": "incoming_calls",
+      "featureB": "outgoing_calls",
+      "correlation": 0.9357
+    },
+    {
+      "featureA": "incoming_calls",
+      "featureB": "total_usage_events",
+      "correlation": 0.9686
+    },
+    {
+      "featureA": "incoming_calls",
+      "featureB": "calls_per_rupee",
+      "correlation": 0.8164
+    },
+    {
+      "featureA": "outgoing_calls",
+      "featureB": "total_usage_events",
+      "correlation": 0.9651
+    },
+    {
+      "featureA": "outgoing_calls",
+      "featureB": "calls_per_rupee",
+      "correlation": 0.8127
+    }
+  ],
+  "outlierAnalysis": {
+    "age": {
+      "q1": 24.2628,
+      "q3": 37.8124,
+      "iqr": 13.5496,
+      "lowerBound": 3.9384,
+      "upperBound": 58.1368,
+      "outlierCount": 41,
+      "outlierPercentage": 0.41
+    },
+    "tenure_months": {
+      "q1": 31.1813,
+      "q3": 70.7635,
+      "iqr": 39.5822,
+      "lowerBound": -28.192,
+      "upperBound": 130.1368,
+      "outlierCount": 0,
+      "outlierPercentage": 0
+    },
+    "monthly_data_gb": {
+      "q1": 3.26,
+      "q3": 18.9725,
+      "iqr": 15.7125,
+      "lowerBound": -20.3088,
+      "upperBound": 42.5413,
+      "outlierCount": 621,
+      "outlierPercentage": 6.21
+    },
+    "avg_daily_data_gb": {
+      "q1": 0.109,
+      "q3": 0.6322,
+      "iqr": 0.5232,
+      "lowerBound": -0.6759,
+      "upperBound": 1.4171,
+      "outlierCount": 621,
+      "outlierPercentage": 6.21
+    },
+    "streaming_hours": {
+      "q1": 7.8475,
+      "q3": 46.36,
+      "iqr": 38.5125,
+      "lowerBound": -49.9213,
+      "upperBound": 104.1287,
+      "outlierCount": 656,
+      "outlierPercentage": 6.56
+    },
+    "hotspot_data_gb": {
+      "q1": 0.49,
+      "q3": 3.13,
+      "iqr": 2.64,
+      "lowerBound": -3.47,
+      "upperBound": 7.09,
+      "outlierCount": 810,
+      "outlierPercentage": 8.1
+    },
+    "streaming_data_ratio": {
+      "q1": 1.9911,
+      "q3": 3.001,
+      "iqr": 1.01,
+      "lowerBound": 0.4761,
+      "upperBound": 4.516,
+      "outlierCount": 0,
+      "outlierPercentage": 0
+    },
+    "hotspot_data_ratio": {
+      "q1": 0.1133,
+      "q3": 0.2386,
+      "iqr": 0.1253,
+      "lowerBound": -0.0747,
+      "upperBound": 0.4266,
+      "outlierCount": 0,
+      "outlierPercentage": 0
+    },
+    "monthly_voice_minutes": {
+      "q1": 80.4675,
+      "q3": 288.1825,
+      "iqr": 207.715,
+      "lowerBound": -231.105,
+      "upperBound": 599.755,
+      "outlierCount": 611,
+      "outlierPercentage": 6.11
+    },
+    "total_calls": {
+      "q1": 41,
+      "q3": 161,
+      "iqr": 120,
+      "lowerBound": -139,
+      "upperBound": 341,
+      "outlierCount": 659,
+      "outlierPercentage": 6.59
+    },
+    "incoming_calls": {
+      "q1": 22,
+      "q3": 84,
+      "iqr": 62,
+      "lowerBound": -71,
+      "upperBound": 177,
+      "outlierCount": 681,
+      "outlierPercentage": 6.81
+    },
+    "outgoing_calls": {
+      "q1": 19,
+      "q3": 76,
+      "iqr": 57,
+      "lowerBound": -66.5,
+      "upperBound": 161.5,
+      "outlierCount": 668,
+      "outlierPercentage": 6.68
+    },
+    "avg_minutes_per_call": {
+      "q1": 1.5729,
+      "q3": 2.297,
+      "iqr": 0.7241,
+      "lowerBound": 0.4867,
+      "upperBound": 3.3832,
+      "outlierCount": 175,
+      "outlierPercentage": 1.75
+    },
+    "monthly_sms": {
+      "q1": 48,
+      "q3": 91,
+      "iqr": 43,
+      "lowerBound": -16.5,
+      "upperBound": 155.5,
+      "outlierCount": 1,
+      "outlierPercentage": 0.01
+    },
+    "international_minutes": {
+      "q1": 3.8,
+      "q3": 18.1975,
+      "iqr": 14.3975,
+      "lowerBound": -17.7963,
+      "upperBound": 39.7938,
+      "outlierCount": 741,
+      "outlierPercentage": 7.41
+    },
+    "roaming_voice_minutes": {
+      "q1": 2.05,
+      "q3": 11.19,
+      "iqr": 9.14,
+      "lowerBound": -11.66,
+      "upperBound": 24.9,
+      "outlierCount": 767,
+      "outlierPercentage": 7.67
+    },
+    "roaming_data_gb": {
+      "q1": 0.32,
+      "q3": 2.51,
+      "iqr": 2.19,
+      "lowerBound": -2.965,
+      "upperBound": 5.795,
+      "outlierCount": 884,
+      "outlierPercentage": 8.84
+    },
+    "international_voice_ratio": {
+      "q1": 0.0372,
+      "q3": 0.0927,
+      "iqr": 0.0555,
+      "lowerBound": -0.0461,
+      "upperBound": 0.176,
+      "outlierCount": 0,
+      "outlierPercentage": 0
+    },
+    "roaming_voice_ratio": {
+      "q1": 0.0201,
+      "q3": 0.0595,
+      "iqr": 0.0394,
+      "lowerBound": -0.039,
+      "upperBound": 0.1186,
+      "outlierCount": 0,
+      "outlierPercentage": 0
+    },
+    "roaming_data_ratio": {
+      "q1": 0.075,
+      "q3": 0.2207,
+      "iqr": 0.1457,
+      "lowerBound": -0.1436,
+      "upperBound": 0.4393,
+      "outlierCount": 0,
+      "outlierPercentage": 0
+    },
+    "monthly_recharge": {
+      "q1": 262.1175,
+      "q3": 666.3125,
+      "iqr": 404.195,
+      "lowerBound": -344.175,
+      "upperBound": 1272.605,
+      "outlierCount": 18,
+      "outlierPercentage": 0.18
+    },
+    "total_usage_events": {
+      "q1": 102,
+      "q3": 252,
+      "iqr": 150,
+      "lowerBound": -123,
+      "upperBound": 477,
+      "outlierCount": 466,
+      "outlierPercentage": 4.66
+    },
+    "calls_per_rupee": {
+      "q1": 0.1012,
+      "q3": 0.3659,
+      "iqr": 0.2647,
+      "lowerBound": -0.2959,
+      "upperBound": 0.7631,
+      "outlierCount": 463,
+      "outlierPercentage": 4.63
+    },
+    "data_per_rupee": {
+      "q1": 0.0102,
+      "q3": 0.0325,
+      "iqr": 0.0223,
+      "lowerBound": -0.0232,
+      "upperBound": 0.066,
+      "outlierCount": 490,
+      "outlierPercentage": 4.9
+    }
+  },
+  "featureVariance": {
+    "age": 85.696358,
+    "tenure_months": 814.780879,
+    "monthly_data_gb": 216.887638,
+    "avg_daily_data_gb": 0.24099,
+    "streaming_hours": 1496.441991,
+    "hotspot_data_gb": 8.765243,
+    "streaming_data_ratio": 0.338149,
+    "hotspot_data_ratio": 0.005198,
+    "monthly_voice_minutes": 41398.238765,
+    "total_calls": 16444.986014,
+    "incoming_calls": 4672.611785,
+    "outgoing_calls": 3842.652116,
+    "avg_minutes_per_call": 0.348702,
+    "monthly_sms": 749.050558,
+    "international_minutes": 266.519148,
+    "roaming_voice_minutes": 111.482474,
+    "roaming_data_gb": 7.633436,
+    "international_voice_ratio": 0.001025,
+    "roaming_voice_ratio": 0.000527,
+    "roaming_data_ratio": 0.007345,
+    "monthly_recharge": 64560.834834,
+    "total_usage_events": 19533.121545,
+    "calls_per_rupee": 0.060757,
+    "data_per_rupee": 0.000409
+  },
+  "lowVarianceFeatures": []
+}
