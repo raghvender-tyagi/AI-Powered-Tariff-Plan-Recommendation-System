@@ -4,12 +4,12 @@ const csv = require("csv-parser");
 
 const inputPath = path.join(
   __dirname,
-  "../../../data/processed/customer_features.csv"
+  "../../data/processed/customer_features.csv"
 );
 
 const outputPath = path.join(
   __dirname,
-  "../../../data/processed/eda_report.json"
+  "../../data/processed/eda_report.json"
 );
 
 const rows = [];

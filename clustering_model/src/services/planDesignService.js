@@ -7,14 +7,14 @@ class PlanDesignService {
       options.clusterProfilesPath ||
       path.resolve(
         __dirname,
-        "../../../data/processed/cluster_profiles.json"
+        "../../data/processed/cluster_profiles.json"
       );
 
     this.outputPath =
       options.outputPath ||
       path.resolve(
         __dirname,
-        "../../../data/processed/plan_catalog.json"
+        "../../data/processed/plan_catalog.json"
       );
   }
 

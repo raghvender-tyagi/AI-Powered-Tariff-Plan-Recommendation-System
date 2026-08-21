@@ -1,23 +1,38 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import { Card, Button, SectionHeading, DemoBadge, Skeleton, ErrorState } from '@/components/ui/Primitives';
-import { GreetingHeader, TwinSummaryGrid, CurrentPlanCard, SavingsCard, ActivityFeed } from '@/components/dashboard/DashboardWidgets';
+import { Card, Button, SectionHeading, Skeleton, ErrorState } from '@/components/ui/Primitives';
+import {
+  GreetingHeader,
+  TwinSummaryGrid,
+  CurrentPlanCard,
+  SavingsCard,
+  ActivityFeed,
+} from '@/components/dashboard/DashboardWidgets';
 import { UsageOverviewChart } from '@/components/dashboard/UsageOverviewChart';
 import { PersonaCard } from '@/components/shared/PersonaCard';
 import { PlanCard } from '@/components/recommendations/PlanCard';
 import { useCustomerBundle } from '@/lib/useCustomerBundle';
-import { useAppStore } from '@/store/useAppStore';
 
 export default function DashboardPage() {
-  const customerName = useAppStore((s) => s.customerName);
-  const { loading, error, customer, cluster, currentPlan, recommendations, plans, history, demo, reload } = useCustomerBundle();
+  const {
+    loading,
+    error,
+    customer,
+    cluster,
+    currentPlan,
+    recommendations,
+    recommendationMeta,
+    plans,
+    history,
+    reload,
+  } = useCustomerBundle();
 
   if (loading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-24" />
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {Array.from({ length: 5 }).map((_, i) => (
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-28" />
           ))}
         </div>
@@ -27,18 +42,18 @@ export default function DashboardPage() {
   }
 
   if (error) {
-    return <ErrorState description="We couldn't load your dashboard data." onRetry={reload} />;
+    return <ErrorState description={error.message} onRetry={reload} />;
   }
 
-  const anyDemo = demo && Object.values(demo).some(Boolean);
   const topRec = recommendations?.[0];
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <GreetingHeader name={customerName} persona={cluster?.personaName} tenureMonths={customer?.tenureMonths} />
-        {anyDemo && <DemoBadge />}
-      </div>
+      <GreetingHeader
+        name={customer.name ?? customer.customerId}
+        persona={cluster?.personaName ?? recommendationMeta?.persona}
+        tenureMonths={customer.tenureMonths}
+      />
 
       <TwinSummaryGrid usage={customer.usage} monthlySpend={customer.monthlySpend} />
 
@@ -50,18 +65,25 @@ export default function DashboardPage() {
               Full Telecom Twin
             </Button>
           </div>
-          <UsageOverviewChart usage={customer.usage} />
+          <UsageOverviewChart usage={customer.usage} averages={cluster?.averages} />
         </Card>
-        <CurrentPlanCard plan={currentPlan} />
+        <CurrentPlanCard plan={currentPlan} monthlySpend={customer.monthlySpend} />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5">
         {cluster && <PersonaCard cluster={cluster} compact />}
-        <SavingsCard currentPrice={currentPlan?.price ?? 0} recommendedPrice={topRec?.plan.price ?? currentPlan?.price ?? 0} />
+        <SavingsCard
+          currentPrice={currentPlan?.price ?? customer.monthlySpend ?? 0}
+          recommendedPrice={topRec?.plan.price ?? 0}
+        />
         <ActivityFeed history={history} plans={plans} />
       </div>
 
-      <SectionHeading eyebrow="AI Recommendation Center" title="Your top matches" description="A quick look — open the full recommendation center for match breakdowns and explanations.">
+      <SectionHeading
+        eyebrow="AI Recommendation Center"
+        title="Your top matches"
+        description={`Scored against all ${recommendationMeta?.plansEvaluated ?? 25} catalogue plans by the recommendation engine.`}
+      >
         <Button as={Link} to="/app/recommendations" size="sm" icon={Sparkles} iconRight={ArrowRight}>
           View all
         </Button>

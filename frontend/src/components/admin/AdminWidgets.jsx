@@ -11,7 +11,7 @@ export function StatCardGrid({ stats }) {
     { label: 'Total customers', value: number(stats.totalCustomers), icon: Users, tone: 'cyan' },
     { label: 'Plans in catalogue', value: number(stats.totalPlans), icon: Layers, tone: 'green' },
     { label: 'Clusters / personas', value: number(stats.totalClusters), icon: Fingerprint, tone: 'blue' },
-    { label: 'Recommendations (30d)', value: number(stats.recommendationsGenerated30d), icon: Sparkles, tone: 'amber' },
+    { label: 'Recommendations stored', value: number(stats.recommendationsGenerated), icon: Sparkles, tone: 'amber' },
   ];
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -70,31 +70,49 @@ export function SegmentationChart({ clusters }) {
 
 export function BatchJobCard({ stats, className }) {
   const [status, setStatus] = useState(stats.lastBatchJobStatus);
+  const [jobError, setJobError] = useState(null);
   const [running, setRunning] = useState(false);
   const [lastRun, setLastRun] = useState(stats.lastClusteringRun);
 
   const handleRun = async () => {
     setRunning(true);
+    setJobError(null);
     setStatus('running');
-    const { data: job } = await runClusteringJob();
-    // poll
-    const poll = async () => {
-      const { data } = await getClusteringJobStatus(job.jobId);
-      if (data.status === 'success' || data.status === 'failed') {
-        setStatus(data.status);
-        setRunning(false);
-        setLastRun(new Date().toISOString());
-      } else {
-        setTimeout(poll, 800);
-      }
-    };
-    poll();
+
+    try {
+      const { data: job } = await runClusteringJob();
+
+      const poll = async () => {
+        try {
+          const { data } = await getClusteringJobStatus(job.jobId);
+          if (data.status === 'success' || data.status === 'failed') {
+            setStatus(data.status);
+            setJobError(data.error ?? null);
+            setRunning(false);
+            setLastRun(data.finishedAt ?? new Date().toISOString());
+          } else {
+            setTimeout(poll, 800);
+          }
+        } catch (error) {
+          setStatus('failed');
+          setJobError(error.message);
+          setRunning(false);
+        }
+      };
+
+      poll();
+    } catch (error) {
+      setStatus('failed');
+      setJobError(error.message);
+      setRunning(false);
+    }
   };
 
   const statusMeta = {
     success: { label: 'Last run succeeded', tone: 'green', icon: CheckCircle2 },
     running: { label: 'Clustering job running…', tone: 'amber', icon: Loader2 },
     failed: { label: 'Last run failed', tone: 'rose', icon: CheckCircle2 },
+    never_run: { label: 'Never run', tone: 'neutral', icon: Clock },
   }[status] ?? { label: status, tone: 'neutral', icon: Clock };
 
   return (
@@ -106,7 +124,12 @@ export function BatchJobCard({ stats, className }) {
         </Badge>
       </div>
       <p className="text-sm text-base-300 mb-1">POST /api/admin/clusters/run</p>
-      <p className="text-xs text-base-500 mb-5">Last run {timeAgo(lastRun)} · recomputes cluster centroids and back-fills every customer's clusterId.</p>
+      <p className="text-xs text-base-500 mb-2">
+        {lastRun ? `Last run ${timeAgo(lastRun)}` : 'Never run from here'} · re-extracts the K-Means
+        centroids and normalisation stats, refreshes the catalogue caches and re-syncs every
+        customer's cluster label.
+      </p>
+      {jobError && <p className="text-xs text-rose-300 mb-3">{jobError}</p>}
       <Button onClick={handleRun} loading={running} icon={PlayCircle} variant="secondary" size="sm">
         Run clustering now
       </Button>

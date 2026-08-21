@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, Scale, RefreshCcw } from 'lucide-react';
-import { SectionHeading, Button, Card, DemoBadge, Skeleton, ErrorState, EmptyState } from '@/components/ui/Primitives';
+import { SectionHeading, Button, Card, Badge, Skeleton, ErrorState, EmptyState } from '@/components/ui/Primitives';
 import { PlanCard } from '@/components/recommendations/PlanCard';
 import { WhyThisPlanDrawer } from '@/components/recommendations/WhyThisPlanDrawer';
 import { JourneyTimeline } from '@/components/shared/JourneyTimeline';
@@ -12,7 +12,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { fadeUp } from '@/lib/motion';
 
 export default function RecommendationsPage() {
-  const { loading, error, recommendations, cluster, demo, reload } = useCustomerBundle();
+  const { loading, error, recommendations, recommendationMeta, cluster, reload } = useCustomerBundle();
   const [activeEntry, setActiveEntry] = useState(null);
   const compareIds = useAppStore((s) => s.compareIds);
   const toggleCompare = useAppStore((s) => s.toggleCompare);
@@ -20,18 +20,29 @@ export default function RecommendationsPage() {
   const navigate = useNavigate();
   const justOnboarded = location.state?.justOnboarded;
 
+  const weights = recommendationMeta?.scoringWeights;
+
   return (
     <div className="space-y-8">
       <SectionHeading
         eyebrow="AI Recommendation Center"
         title={justOnboarded ? 'Here are your best-fit plans' : 'Your top plan recommendations'}
-        description="Ranked by an overall match score built from data, calling, budget, roaming and persona fit."
-      >
-        {demo?.recommendations && <DemoBadge />}
-      </SectionHeading>
+        description={
+          weights
+            ? `All ${recommendationMeta.plansEvaluated} catalogue plans were scored as ${weights.usageFit} usage fit + ${weights.budgetFit} budget fit + ${weights.personaMatch} persona match. These are the three highest.`
+            : 'Ranked by the recommendation engine across the full plan catalogue.'
+        }
+      />
 
       <Card className="p-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-base-400 mb-3">AI Recommendation Journey</p>
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-base-400">
+            AI Recommendation Journey
+          </p>
+          {recommendationMeta?.persona && (
+            <Badge tone="cyan">Persona: {recommendationMeta.persona}</Badge>
+          )}
+        </div>
         <JourneyTimeline activeKey="explanation" />
       </Card>
 
@@ -43,7 +54,7 @@ export default function RecommendationsPage() {
         </div>
       )}
 
-      {!loading && error && <ErrorState description="We couldn't load your recommendations right now." onRetry={reload} />}
+      {!loading && error && <ErrorState description={error.message} onRetry={reload} />}
 
       {!loading && !error && (!recommendations || recommendations.length === 0) && (
         <EmptyState
@@ -74,7 +85,10 @@ export default function RecommendationsPage() {
             ))}
           </div>
 
-          <motion.div {...fadeUp} className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-base-700 bg-base-900/60 px-6 py-4">
+          <motion.div
+            {...fadeUp}
+            className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-base-700 bg-base-900/60 px-6 py-4"
+          >
             <p className="text-sm text-base-300">
               {compareIds.length > 0
                 ? `${compareIds.length} plan${compareIds.length > 1 ? 's' : ''} added to compare.`
@@ -84,7 +98,12 @@ export default function RecommendationsPage() {
               <Button variant="ghost" size="sm" icon={RefreshCcw} onClick={reload}>
                 Refresh
               </Button>
-              <Button size="sm" icon={Scale} disabled={compareIds.length === 0} onClick={() => navigate('/app/compare')}>
+              <Button
+                size="sm"
+                icon={Scale}
+                disabled={compareIds.length === 0}
+                onClick={() => navigate('/app/compare')}
+              >
                 Compare selected
               </Button>
             </div>

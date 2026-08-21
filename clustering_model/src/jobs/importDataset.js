@@ -4,17 +4,17 @@ const csv = require("csv-parser");
 
 const inputPath = path.join(
   __dirname,
-  "../../../data/raw/telecom_customer_usage_dummy_dataset_corrected.csv"
+  "../../data/raw/telecom_customer_usage_dummy_dataset_corrected.csv"
 );
 
 const outputPath = path.join(
   __dirname,
-  "../../../data/processed/cleaned_telecom.csv"
+  "../../data/processed/cleaned_telecom.csv"
 );
 
 const reportPath = path.join(
   __dirname,
-  "../../../data/processed/data_quality_report.json"
+  "../../data/processed/data_quality_report.json"
 );
 
 // ------------------------------------

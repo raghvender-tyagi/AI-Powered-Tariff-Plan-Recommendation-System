@@ -1,8 +1,7 @@
 # Tariff Twin — Frontend
 
-A premium, AI-SaaS frontend for the **AI-Powered Tariff Plan Recommendation System** (MERN stack), built with React 19, Vite, TailwindCSS v4, Recharts, Framer Motion and Zustand.
-
-This is a **frontend-only rebuild**. It does not touch or assume any specific backend implementation — it talks to the REST API contract defined in the project's technical plan, and gracefully falls back to clearly-labeled demo data for any endpoint that isn't live yet, so the whole app is explorable before the backend exists.
+React 19 + Vite + TailwindCSS v4 + Recharts + Framer Motion + Zustand client
+for the AI-Powered Tariff Plan Recommendation System.
 
 ## Quick start
 
@@ -11,59 +10,84 @@ npm install
 npm run dev       # http://localhost:5173
 npm run build     # production build to dist/
 npm run preview   # preview the production build
+npm run lint
 ```
 
-## Connecting your real backend
-
-Create `client/.env` (see `.env.example`):
+The backend must be running (`npm --prefix backend start`). Point the client
+at it via `.env`:
 
 ```
 VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
-Every call in `src/api/*.js` targets the exact endpoints from the technical plan
-(`GET /api/customers/:id`, `POST /api/recommendations/by-customer/:id`,
-`POST /api/chat/message`, `GET /api/clusters`, `POST /api/admin/clusters/run`, …).
-Once your Express server is live at that base URL and returns JSON, the app
-will use real data automatically — no UI code changes required. The "Demo
-data" badge shown around the app disappears once a screen is getting real
-responses.
+## No demo data
+
+This client talks **only** to the real API. There is no mock/offline data
+path: the 25-plan catalogue, the K-Means personas and every match score come
+from the backend, and a failed request renders an error state rather than
+invented values.
+
+Consequently:
+
+* `src/api/mockData.js` has been removed.
+* `src/lib/scoring.js` — the old client-side mirror of the scoring formula —
+  has been removed too. Ranking exists in exactly one place, the backend
+  recommendation engine. The What-If simulator posts to
+  `POST /api/recommendations/what-if` instead of estimating in the browser.
 
 ## Project structure
 
 ```
 src/
-  api/            axios wrappers per resource, each with a demo fallback
+  api/            one axios module per resource, all hitting the real API
   components/
-    admin/        admin analytics, cluster explorer, batch-job status
+    admin/        admin analytics, cluster explorer, batch-job status, model panel
     advisor/      the AI Advisor chat window (full page + floating widget)
-    compare/      plan picker, comparison table, AI verdict badges
+    compare/      plan picker, backend-built comparison table, AI verdicts
     dashboard/    dashboard widgets + usage chart
     landing/      marketing/landing page sections
     layout/       app shell, nav, floating chat button
-    onboarding/   step wizard + AI analysis loading sequence
+    onboarding/   step wizard + AI analysis sequence
     recommendations/  plan cards, match-score breakdown, why-this-plan drawer
-    shared/       persona card, journey timeline, operator comparison
+    shared/       persona card, journey timeline, category comparison
     simulator/    what-if sliders
-    twin/         telecom twin gauges, contract info, plan health
+    twin/         telecom twin gauges, account info, segment comparison
     ui/           design-system primitives (Button, Card, Badge, Drawer, Gauge…)
-  lib/            formatting, client-side scoring mirror, chart palette, hooks
+  lib/            formatting, plan-shape helpers, chart palette, hooks
   pages/          one file per route
-  store/          Zustand app store (profile, recommendations, compare tray)
+  store/          Zustand app store (identity, profile, compare tray)
 ```
 
-## Notes for whoever wires up the backend
+## Data shapes
 
-- `src/lib/scoring.js` mirrors the backend's weighted-fit formula (section 6.4
-  of the technical plan) purely so the **What-If Simulator** and onboarding
-  flow can react instantly in the browser. It is explicitly labeled as an
-  estimate in the UI and is superseded by the real API response as soon as
-  it lands (see the simulator's "Synced with recommendation engine" badge).
-- `src/api/mockData.js` holds all demo/fallback data. Nothing in it is real
-  customer, operator, or pricing data — operator names are fictional demo
-  brands, per the project's requirement not to fabricate real statistics.
-- Admin routes assume JWT bearer auth exactly as specified (`POST
-  /api/auth/login` → `{ token }`), stored in `sessionStorage` and attached
-  to every subsequent request via `src/api/client.js`.
-- No secrets, API keys, or environment values are hard-coded anywhere in the
-  client bundle.
+`GET /api/plans` returns the catalogue plan shape:
+
+```js
+{
+  _id: 'FLEX_3', planName: 'Flex 3', category: 'FLEX', categoryLabel: 'Flex',
+  price: 169, validityDays: 28, differentiator: 'Unused-data rollover',
+  allowanceType: 'personal', dailyDataGb: 1, monthlyDataGb: 30, dataGB: 30,
+  members: null, employees: null, pricePerGb: 5.63,
+  priceTier: 'budget', dataTier: 'moderate',
+  clusterId: 0, persona: 'Moderate / General Users', benefits: [...]
+}
+```
+
+A recommendation entry adds the engine's own output:
+
+```js
+{
+  planId, rank, plan, matchPercent, rawScore,
+  breakdown: { usageFit, budgetFit, personaMatch },
+  explanation, explanationDetail: { reasons, contributions, formula }
+}
+```
+
+`src/lib/planShape.js` holds the small helpers for reading these
+(`categoryLabel`, `dailyData`, `coverageLabel`, `SCORE_DIMENSIONS`).
+
+## Admin
+
+`POST /api/auth/login` issues a JWT which `src/api/client.js` stores in
+`sessionStorage` and attaches to every subsequent request. Credentials come
+from `ADMIN_USERNAME` / `ADMIN_PASSWORD` in `backend/.env`.

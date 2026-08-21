@@ -16,15 +16,14 @@ export function AdminLogin() {
     setLoading(true);
     setError(null);
     try {
-      const { data, demo } = await login(username, password);
+      const { data } = await login(username, password);
       if (data?.token) {
         setAdminToken(data.token);
-        if (demo) setError(null);
       } else {
         setError('Invalid credentials.');
       }
-    } catch {
-      setError('Login failed. Please try again.');
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -59,7 +58,7 @@ export function AdminLogin() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Any value works in demo mode"
+              placeholder="Set in backend/.env (ADMIN_PASSWORD)"
               className="w-full rounded-lg bg-base-800/70 border border-base-700 px-3 py-2.5 text-sm text-base-100 placeholder:text-base-500 outline-none focus-visible:border-cyan-400/60"
             />
           </div>
@@ -68,8 +67,8 @@ export function AdminLogin() {
             Sign in
           </Button>
         </form>
-        <Badge tone="demo" className="mt-5">
-          No backend connected — any credentials sign you into the demo admin view
+        <Badge tone="neutral" className="mt-5">
+          Credentials come from ADMIN_USERNAME / ADMIN_PASSWORD in backend/.env
         </Badge>
       </Card>
     </div>

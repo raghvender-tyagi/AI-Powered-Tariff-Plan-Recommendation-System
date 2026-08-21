@@ -5,17 +5,17 @@ const { kmeans } = require("ml-kmeans");
 
 const inputPath = path.join(
   __dirname,
-  "../../../data/processed/ml_features.csv"
+  "../../data/processed/ml_features.csv"
 );
 
 const outputPath = path.join(
   __dirname,
-  "../../../data/processed/customer_clusters.csv"
+  "../../data/processed/customer_clusters.csv"
 );
 
 const reportPath = path.join(
   __dirname,
-  "../../../data/processed/clustering_report.json"
+  "../../data/processed/clustering_report.json"
 );
 
 const rows = [];

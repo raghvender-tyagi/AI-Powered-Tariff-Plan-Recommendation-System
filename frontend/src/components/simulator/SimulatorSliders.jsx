@@ -26,12 +26,14 @@ function SliderField({ icon: Icon, label, value, onChange, min, max, step, forma
 }
 
 export function SimulatorSliders({ profile, onChange, className }) {
+  if (!profile) return null;
+
   return (
     <Card className={`p-6 space-y-6 ${className || ''}`}>
       <p className="text-xs uppercase tracking-wider text-base-400 font-semibold">Adjust your usage</p>
       <SliderField
         icon={Wifi}
-        label="Data usage"
+        label="Data usage / month"
         value={profile.dataNeedGB}
         onChange={(v) => onChange({ ...profile, dataNeedGB: v })}
         min={1}
@@ -41,7 +43,7 @@ export function SimulatorSliders({ profile, onChange, className }) {
       />
       <SliderField
         icon={PhoneCall}
-        label="Calling minutes"
+        label="Calling minutes / month"
         value={profile.callNeedMin}
         onChange={(v) => onChange({ ...profile, callNeedMin: v })}
         min={0}

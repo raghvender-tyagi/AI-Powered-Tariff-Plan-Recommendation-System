@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChevronDown, Fingerprint, Users, Loader2 } from 'lucide-react';
 import { Card, Badge } from '@/components/ui/Primitives';
 import { number, currency } from '@/lib/format';
-import { operatorName } from '@/components/recommendations/PlanCard';
+import { categoryLabel } from '@/lib/planShape';
 import { getClusterCustomers } from '@/api/clusters';
 
 const TRAIT_TONE = { 'Very High': 'rose', High: 'amber', Medium: 'blue', Low: 'green', 'Very Low': 'green' };
@@ -29,7 +29,7 @@ export function ClusterExplorer({ clusters, plans }) {
   return (
     <div className="space-y-3">
       {clusters.map((cluster) => {
-        const popularPlans = plans.filter((p) => p.clusterIds?.includes(cluster._id)).slice(0, 3);
+        const popularPlans = plans.filter((p) => p.clusterId === cluster.clusterLabel).slice(0, 4);
         const isOpen = openId === cluster._id;
         return (
           <Card key={cluster._id} className="overflow-hidden">
@@ -75,7 +75,7 @@ export function ClusterExplorer({ clusters, plans }) {
                       <li key={p._id} className="text-sm text-base-200 flex justify-between">
                         <span>{p.planName}</span>
                         <span className="text-base-500">
-                          {operatorName(p.operator)} · {currency(p.price)}
+                          {categoryLabel(p)} · {currency(p.price)}
                         </span>
                       </li>
                     ))}
@@ -92,8 +92,8 @@ export function ClusterExplorer({ clusters, plans }) {
                     <ul className="space-y-1.5">
                       {(customersById[cluster._id] ?? []).slice(0, 6).map((c) => (
                         <li key={c._id} className="text-sm text-base-300 flex justify-between">
-                          <span>{c.name}</span>
-                          <span className="text-base-500">{c.usage?.dataGB}GB · {c.usage?.avgCallMin}min</span>
+                          <span>{c.customerId ?? c._id}</span>
+                          <span className="text-base-500">{Number(c.usage?.dataGB ?? 0).toFixed(1)}GB · {Math.round(c.usage?.callMinutes ?? 0)}min</span>
                         </li>
                       ))}
                     </ul>

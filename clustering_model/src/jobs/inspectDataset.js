@@ -4,7 +4,7 @@ const csv = require("csv-parser");
 
 const inputPath = path.join(
   __dirname,
-  "../../../data/raw/telecom_customer_usage_dummy_dataset_corrected.csv"
+  "../../data/raw/telecom_customer_usage_dummy_dataset_corrected.csv"
 );
 
 const expectedColumns = [

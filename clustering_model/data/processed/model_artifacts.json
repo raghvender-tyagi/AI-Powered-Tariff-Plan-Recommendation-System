@@ -1,0 +1,312 @@
+{
+  "generatedAt": "2026-08-21T17:36:07.178Z",
+  "source": {
+    "customerFeatures": "customer_features.csv",
+    "mlFeatures": "ml_features.csv",
+    "clusterLabels": "customer_clusters.csv"
+  },
+  "algorithm": "K-Means (k=2, kmeans++, seed 42) - persisted Group 2 solution",
+  "customers": 10000,
+  "featureOrder": [
+    "monthly_data_gb",
+    "streaming_hours",
+    "hotspot_data_gb",
+    "monthly_voice_minutes",
+    "avg_minutes_per_call",
+    "monthly_sms",
+    "international_minutes",
+    "roaming_voice_minutes",
+    "roaming_data_gb",
+    "monthly_recharge",
+    "tenure_months"
+  ],
+  "ratioFeatures": [
+    "streaming_data_ratio",
+    "hotspot_data_ratio",
+    "international_voice_ratio",
+    "roaming_voice_ratio",
+    "roaming_data_ratio"
+  ],
+  "preprocessing": {
+    "outlierTreatment": "1st-99th percentile clipping",
+    "scaling": "Min-Max to [0, 1]"
+  },
+  "normalization": {
+    "monthly_data_gb": {
+      "clipLower": 0.4,
+      "clipUpper": 64.23080000000002,
+      "min": 0.4,
+      "max": 64.23080000000002
+    },
+    "streaming_hours": {
+      "clipLower": 0.91,
+      "clipUpper": 171.5235000000003,
+      "min": 0.91,
+      "max": 171.5235000000003
+    },
+    "hotspot_data_gb": {
+      "clipLower": 0.05,
+      "clipUpper": 13.69050000000001,
+      "min": 0.05,
+      "max": 13.69050000000001
+    },
+    "monthly_voice_minutes": {
+      "clipLower": 12.128500000000003,
+      "clipUpper": 948.8619000000003,
+      "min": 12.128500000000003,
+      "max": 948.8619000000003
+    },
+    "avg_minutes_per_call": {
+      "clipLower": 0.8570490000000001,
+      "clipUpper": 3.561272000000006,
+      "min": 0.8570490000000001,
+      "max": 3.561272000000006
+    },
+    "monthly_sms": {
+      "clipLower": 25,
+      "clipUpper": 133,
+      "min": 25,
+      "max": 133
+    },
+    "international_minutes": {
+      "clipLower": 0.47,
+      "clipUpper": 79.87100000000002,
+      "min": 0.47,
+      "max": 79.87100000000002
+    },
+    "roaming_voice_minutes": {
+      "clipLower": 0.06,
+      "clipUpper": 52.19,
+      "min": 0.06,
+      "max": 52.19
+    },
+    "roaming_data_gb": {
+      "clipLower": 0.01,
+      "clipUpper": 13.150300000000007,
+      "min": 0.01,
+      "max": 13.150300000000007
+    },
+    "monthly_recharge": {
+      "clipLower": 138.3599,
+      "clipUpper": 1157.9134000000006,
+      "min": 138.3599,
+      "max": 1157.9134000000006
+    },
+    "tenure_months": {
+      "clipLower": 7.945114597221383,
+      "clipUpper": 120,
+      "min": 7.945114597221383,
+      "max": 120
+    }
+  },
+  "centroids": {
+    "0": [
+      0.09168629726715022,
+      0.08532234411600631,
+      0.07522525822643572,
+      0.23278495775237,
+      0.40772633324037943,
+      0.39833277356386126,
+      0.18041493042386988,
+      0.17384728095370924,
+      0.06797946946458408,
+      0.2342095372281095,
+      0.40764805967652
+    ],
+    "1": [
+      0.49814478465346446,
+      0.46470854490806174,
+      0.413210677157002,
+      0.18648360289957563,
+      0.4079218465346525,
+      0.5745913670438454,
+      0.1459941612446962,
+      0.14124504702970314,
+      0.36051756859971795,
+      0.6347094844413016,
+      0.39691737659123033
+    ]
+  },
+  "clusterCount": 2,
+  "personas": {
+    "0": {
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "customerCount": 7172,
+      "customerPercentage": 71.72
+    },
+    "1": {
+      "clusterId": 1,
+      "persona": "Heavy Data & Streaming Users",
+      "customerCount": 2828,
+      "customerPercentage": 28.28
+    }
+  },
+  "population": {
+    "monthly_data_gb": {
+      "min": 0.05,
+      "p10": 1.479000000000001,
+      "p25": 3.26,
+      "median": 7.965,
+      "p75": 18.9725,
+      "p90": 35.17,
+      "max": 105.43,
+      "mean": 13.692604000000001
+    },
+    "streaming_hours": {
+      "min": 0.12,
+      "p10": 3.48,
+      "p25": 7.8475,
+      "median": 19.29,
+      "p75": 46.36,
+      "p90": 88.311,
+      "max": 326.32,
+      "mean": 34.16093600000007
+    },
+    "hotspot_data_gb": {
+      "min": 0.01,
+      "p10": 0.21,
+      "p25": 0.49,
+      "median": 1.26,
+      "p75": 3.13,
+      "p90": 6.3110000000000035,
+      "max": 26.65,
+      "mean": 2.4096389999999954
+    },
+    "monthly_voice_minutes": {
+      "min": 1.14,
+      "p10": 43.357,
+      "p25": 80.4675,
+      "median": 152.075,
+      "p75": 288.1825,
+      "p90": 493.38800000000055,
+      "max": 1603.76,
+      "mean": 219.61762600000046
+    },
+    "avg_minutes_per_call": {
+      "min": 0,
+      "p10": 1.2904,
+      "p25": 1.5729,
+      "median": 1.9125,
+      "p75": 2.297025,
+      "p90": 2.68142,
+      "max": 9.58,
+      "mean": 1.9649610299999987
+    },
+    "monthly_sms": {
+      "min": 17,
+      "p10": 33,
+      "p25": 48,
+      "median": 77,
+      "p75": 91,
+      "p90": 106,
+      "max": 157,
+      "mean": 73.4276
+    },
+    "international_minutes": {
+      "min": 0.01,
+      "p10": 1.79,
+      "p25": 3.8,
+      "median": 8.52,
+      "p75": 18.1975,
+      "p90": 33.482000000000006,
+      "max": 173.19,
+      "mean": 14.206577000000031
+    },
+    "roaming_voice_minutes": {
+      "min": 0,
+      "p10": 0.75,
+      "p25": 2.05,
+      "median": 5.09,
+      "p75": 11.19,
+      "p90": 21.45,
+      "max": 102.88,
+      "mean": 8.751879999999963
+    },
+    "roaming_data_gb": {
+      "min": 0,
+      "p10": 0.10900000000000092,
+      "p25": 0.32,
+      "median": 0.945,
+      "p75": 2.51,
+      "p90": 5.35,
+      "max": 27.84,
+      "mean": 2.0180690000000165
+    },
+    "monthly_recharge": {
+      "min": 99,
+      "p10": 189.345,
+      "p25": 262.1175,
+      "median": 445.21500000000003,
+      "p75": 666.3125,
+      "p90": 831.63,
+      "max": 1481.66,
+      "mean": 493.19464200000147
+    },
+    "tenure_months": {
+      "min": 1.591588701268525,
+      "p10": 20.07344983887842,
+      "p25": 31.18131362811341,
+      "median": 48.2945553037989,
+      "p75": 70.76349928128272,
+      "p90": 95.8431173992022,
+      "max": 120,
+      "mean": 53.262323231981206
+    },
+    "streaming_data_ratio": {
+      "min": 1.4937,
+      "p10": 1.6940899999999999,
+      "p25": 1.9910750000000002,
+      "median": 2.4926,
+      "p75": 3.0010499999999998,
+      "p90": 3.30001,
+      "max": 3.5385,
+      "mean": 2.495780989999991
+    },
+    "hotspot_data_ratio": {
+      "min": 0.04,
+      "p10": 0.0751,
+      "p25": 0.1133,
+      "median": 0.17625000000000002,
+      "p75": 0.238625,
+      "p90": 0.27531,
+      "max": 0.3125,
+      "mean": 0.17584135999999972
+    },
+    "international_voice_ratio": {
+      "min": 0.0086,
+      "p10": 0.02,
+      "p25": 0.0372,
+      "median": 0.06415,
+      "p75": 0.0927,
+      "p90": 0.1093,
+      "max": 0.1207,
+      "mean": 0.06461932000000001
+    },
+    "roaming_voice_ratio": {
+      "min": 0,
+      "p10": 0.008,
+      "p25": 0.0201,
+      "median": 0.0402,
+      "p75": 0.0595,
+      "p90": 0.072,
+      "max": 0.08,
+      "mean": 0.040031330000000004
+    },
+    "roaming_data_ratio": {
+      "min": 0,
+      "p10": 0.03019000000000001,
+      "p25": 0.075,
+      "median": 0.1482,
+      "p75": 0.2207,
+      "p90": 0.26831000000000005,
+      "max": 0.3125,
+      "mean": 0.1483196100000004
+    }
+  },
+  "validation": {
+    "normalizationVerified": true,
+    "maxNormalizationDelta": 4.99996322123053e-7,
+    "nearestCentroidAgreement": 0.9999
+  }
+}

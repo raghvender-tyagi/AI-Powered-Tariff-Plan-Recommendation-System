@@ -609,6 +609,12 @@ class RecommendationEngine {
           3
         ),
 
+      // Full ranking of all 25 plans, highest score first.
+      // Same array the Top-3 is sliced from — exposed so callers
+      // (API, comparison, what-if) never have to re-score anything.
+      ranked:
+        scoredPlans,
+
       scoringWeights: {
         usageFit: "40%",
         budgetFit: "30%",

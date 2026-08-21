@@ -1,0 +1,24 @@
+{
+  "name": "tariff-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Express API that integrates the Group 1 feature pipeline, the Group 2 K-Means model and the existing recommendation engine with the React frontend.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/scripts/seed.js",
+    "test:flow": "node src/scripts/testFlow.js",
+    "test:api": "node src/scripts/testApi.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "morgan": "^1.10.0"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "tariff-clustering-model",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Group 1 data/feature engineering + Group 2 K-Means clustering, personas, 25-plan catalogue, plan-cluster mapping and the recommendation engine.",
+  "main": "src/services/recommendationEngine.js",
+  "scripts": {
+    "inspect": "node src/jobs/inspectDataset.js",
+    "import": "node src/jobs/importDataset.js",
+    "features": "node src/services/featureEngineering.js",
+    "analyze": "node src/jobs/analyzeFeatures.js",
+    "eda": "node src/jobs/runEDA.js",
+    "ml-features": "node src/services/prepareMLFeatures.js",
+    "cluster": "node src/services/clusteringService.js",
+    "profile": "node src/services/clusterProfiling.js",
+    "alternatives": "node src/jobs/evaluateAlternatives.js",
+    "visualize": "node src/jobs/runClusterVisualization.js",
+    "map-plans": "node src/services/planClusterMapping.js",
+    "recommend": "node src/services/recommendationEngine.js",
+    "artifacts": "node src/jobs/buildModelArtifacts.js",
+    "pipeline": "npm run import && npm run features && npm run ml-features && npm run cluster && npm run profile && npm run map-plans && npm run artifacts"
+  },
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "ml-kmeans": "^6.0.0"
+  }
+}

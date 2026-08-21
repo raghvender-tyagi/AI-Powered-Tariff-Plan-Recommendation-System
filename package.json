@@ -2,9 +2,32 @@
   "name": "ai-powered-tariff-plan-recommendation-system",
   "version": "1.0.0",
   "private": true,
+  "description": "MERN application integrating the Group 1 feature pipeline, the Group 2 K-Means segmentation and the recommendation engine with a React frontend.",
   "scripts": {
-    "dev": "npm --prefix frontend run dev",
+    "install:all": "npm install && npm --prefix clustering_model install && npm --prefix backend install && npm --prefix frontend install",
+
+    "ml:artifacts": "npm --prefix clustering_model run artifacts",
+    "ml:pipeline": "npm --prefix clustering_model run pipeline",
+    "ml:recommend": "npm --prefix clustering_model run recommend",
+
+    "seed": "npm --prefix backend run seed",
+    "seed:all": "node backend/src/scripts/seed.js --all",
+
+    "backend": "npm --prefix backend start",
+    "backend:dev": "npm --prefix backend run dev",
+    "frontend": "npm --prefix frontend run dev",
+
+    "dev": "concurrently -n api,web -c cyan,green \"npm:backend\" \"npm:frontend\"",
+    "start": "npm run dev",
+
     "build": "npm --prefix frontend run build",
-    "start": "npm --prefix frontend run dev"
+    "preview": "npm --prefix frontend run preview",
+
+    "test": "npm run test:flow && npm run test:api",
+    "test:flow": "npm --prefix backend run test:flow",
+    "test:api": "npm --prefix backend run test:api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

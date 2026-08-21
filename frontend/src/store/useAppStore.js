@@ -10,13 +10,24 @@ const defaultProfile = {
   familyOrIndividual: undefined,
 };
 
+// A real seeded customer id from the dataset (customer_features.csv).
+// Onboarding replaces this with the id the backend creates for the visitor.
+export const DEFAULT_CUSTOMER_ID = 'CUST00001';
+
 export const useAppStore = create(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Identity
-      customerName: 'Aarav',
-      customerId: 'cust_demo_01',
+      customerName: 'there',
+      customerId: DEFAULT_CUSTOMER_ID,
       isAdmin: false,
+
+      setCustomer: (customerId, customerName) =>
+        set((state) => ({
+          customerId: customerId ?? state.customerId,
+          customerName: customerName ?? state.customerName,
+          lastRecommendations: null,
+        })),
 
       // Day & Night Theme
       isDarkMode: true,
@@ -30,7 +41,7 @@ export const useAppStore = create(
           return { isDarkMode: next };
         }),
 
-      // Onboarding profile (mirrors extract_profile tool schema, section 6.6)
+      // Onboarding profile (mirrors the backend's extract_profile slots)
       onboardingComplete: false,
       profile: defaultProfile,
       setProfileField: (field, value) =>
@@ -38,7 +49,7 @@ export const useAppStore = create(
       resetProfile: () => set({ profile: defaultProfile, onboardingComplete: false }),
       completeOnboarding: () => set({ onboardingComplete: true }),
 
-      // Latest recommendation payload, shared across Dashboard / Recommendations / History
+      // Latest engine response, shared across Dashboard / Recommendations / Compare
       lastRecommendations: null,
       setLastRecommendations: (plans) => set({ lastRecommendations: plans }),
 
@@ -54,7 +65,7 @@ export const useAppStore = create(
         })),
       clearCompare: () => set({ compareIds: [] }),
 
-      // Simple client-side auth flag for the admin area (demo)
+      // Admin session (JWT issued by POST /api/auth/login)
       adminToken: null,
       setAdminToken: (token) => set({ adminToken: token, isAdmin: !!token }),
       logoutAdmin: () => set({ adminToken: null, isAdmin: false }),
@@ -66,7 +77,6 @@ export const useAppStore = create(
         customerId: state.customerId,
         onboardingComplete: state.onboardingComplete,
         profile: state.profile,
-        lastRecommendations: state.lastRecommendations,
         isDarkMode: state.isDarkMode,
       }),
     },

@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const csv = require("csv-parser");
 
-const ROOT = path.resolve(__dirname, "../../..");
+const ROOT = path.resolve(__dirname, "../..");
 
 const ML_FEATURES_PATH = path.join(
   ROOT,

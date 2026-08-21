@@ -4,12 +4,12 @@ const csv = require("csv-parser");
 
 const inputPath = path.join(
   __dirname,
-  "../../../data/processed/customer_features.csv"
+  "../../data/processed/customer_features.csv"
 );
 
 const outputPath = path.join(
   __dirname,
-  "../../../data/processed/ml_features.csv"
+  "../../data/processed/ml_features.csv"
 );
 
 // These are the features we decided to use for clustering.

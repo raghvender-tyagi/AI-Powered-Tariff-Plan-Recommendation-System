@@ -6,72 +6,72 @@ import { getRecommendationsByCustomer, getRecommendationHistory } from '@/api/re
 import { useAppStore } from '@/store/useAppStore';
 
 /**
- * Loads everything the authenticated screens need: the customer profile +
- * usage, the plan catalogue, cluster/persona data, the customer's current
- * plan, and their latest AI recommendations. Mirrors Journey A from the
- * technical plan (GET usage -> POST recommendations/by-customer/:id).
+ * Loads everything the authenticated screens need, straight from the API:
+ * the customer profile + engineered usage, the 25-plan catalogue, the
+ * K-Means personas, the customer's current plan and their engine-ranked
+ * recommendations.
+ *
+ * Journey A from the plan: GET customer -> POST recommendations/by-customer/:id.
+ * Ranking always comes from the backend engine; nothing is scored here.
  */
 export function useCustomerBundle() {
   const customerId = useAppStore((s) => s.customerId);
-  const storedRecommendations = useAppStore((s) => s.lastRecommendations);
   const setLastRecommendations = useAppStore((s) => s.setLastRecommendations);
-  const profile = useAppStore((s) => s.profile);
 
   const [state, setState] = useState({ loading: true, error: null });
 
   const load = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
+
     try {
-      const [customerRes, clustersRes, plansRes, historyRes] = await Promise.all([
+      const [customerRes, clustersRes, plansRes] = await Promise.all([
         getCustomer(customerId),
         getClusters(),
         getPlans(),
-        getRecommendationHistory(customerId),
       ]);
 
-      let recommendations = storedRecommendations;
-      let recDemo = false;
-      if (!recommendations || recommendations.length === 0) {
-        const derivedProfile = {
-          dataNeedGB: customerRes.data.usage?.dataGB,
-          callNeedMin: customerRes.data.usage?.avgCallMin,
-          budget: profile?.budget ?? 650,
-          roamingRequired: (customerRes.data.usage?.roamingUsage ?? 0) > 0,
-          clusterId: customerRes.data.clusterId,
-        };
-        const recRes = await getRecommendationsByCustomer(customerId, derivedProfile);
-        recommendations = recRes.data.plans;
-        recDemo = recRes.demo;
-        setLastRecommendations(recommendations);
+      const customer = customerRes.data;
+
+      // History is non-critical — a failure here must not blank the page.
+      let history = [];
+      try {
+        history = (await getRecommendationHistory(customerId)).data;
+      } catch {
+        history = [];
       }
 
-      const cluster = clustersRes.data.find((c) => c._id === customerRes.data.clusterId) || null;
-      const currentPlan = plansRes.data.find((p) => p._id === customerRes.data.currentPlanId) || null;
+      const recRes = await getRecommendationsByCustomer(customerId);
+      const recommendations = recRes.data.plans;
+      setLastRecommendations(recommendations);
+
+      const cluster =
+        clustersRes.data.find((item) => item.clusterLabel === customer.clusterId) ?? recRes.data.cluster ?? null;
+
+      const currentPlan = plansRes.data.find((plan) => plan._id === customer.currentPlanId) ?? null;
 
       setState({
         loading: false,
         error: null,
-        customer: customerRes.data,
+        customer,
         cluster,
         plans: plansRes.data,
         currentPlan,
         recommendations,
-        history: historyRes.data,
-        demo: {
-          customer: customerRes.demo,
-          clusters: clustersRes.demo,
-          plans: plansRes.demo,
-          recommendations: recDemo,
-          history: historyRes.demo,
+        recommendationMeta: {
+          persona: recRes.data.persona,
+          plansEvaluated: recRes.data.plansEvaluated,
+          scoringWeights: recRes.data.scoringWeights,
+          personaAssignment: recRes.data.personaAssignment,
+          generatedAt: recRes.data.generatedAt,
         },
+        history,
       });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('useCustomerBundle failed', error);
       setState({ loading: false, error });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customerId]);
+  }, [customerId, setLastRecommendations]);
 
   useEffect(() => {
     load();

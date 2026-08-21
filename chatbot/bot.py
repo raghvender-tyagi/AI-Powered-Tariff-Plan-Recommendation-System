@@ -24,24 +24,69 @@ from langgraph.checkpoint.memory import MemorySaver
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 # -----------------------------------------------------------------
-# 1. PLANS LIST — demo catalogue; replace these with your real plans later.
+# 1. PLANS LIST — the real 25-plan catalogue produced by the Group 2
+#    plan design + plan/cluster mapping jobs. Loaded from disk so this
+#    agent can never drift from the catalogue the recommendation engine
+#    and the Node backend score against.
 # -----------------------------------------------------------------
-PLANS_LIST = """
-1. Starter 199 - Rs 199 - 1GB/day data, 100 min calls, 100 SMS, roaming: no, validity: 28 days
-2. Daily 299 - Rs 299 - 1.5GB/day data, unlimited calls, 100 SMS, roaming: no, validity: 28 days
-3. Smart 399 - Rs 399 - 2.5GB/day data, unlimited calls, 100 SMS, roaming: no, validity: 28 days
-4. Max 599 - Rs 599 - 3GB/day data, unlimited calls, 100 SMS, roaming: yes, validity: 56 days
-5. Talktime 179 - Rs 179 - 500MB/day data, 2,000 min calls, 300 SMS, roaming: no, validity: 28 days
-6. Traveler 799 - Rs 799 - 2GB/day data, unlimited calls, 100 SMS, roaming: yes, validity: 84 days
-""".strip()
 
-if "<PlanName>" in PLANS_LIST or PLANS_LIST == "PASTE YOUR PLANS HERE":
-  raise RuntimeError("Replace PLANS_LIST in chatbot/bot.py with your real tariff plans before starting the chatbot.")
+import json
+
+PROCESSED = Path(__file__).resolve().parents[1] / "clustering_model" / "data" / "processed"
+PLAN_CATALOG_PATH = PROCESSED / "plan_catalog.json"
+PLAN_MAPPING_PATH = PROCESSED / "plan_cluster_mapping.json"
+
+
+def load_plans() -> str:
+  """Renders the committed 25-plan catalogue as prompt text."""
+  if not PLAN_CATALOG_PATH.exists():
+    raise RuntimeError(f"Plan catalogue not found at {PLAN_CATALOG_PATH}")
+
+  catalog = json.loads(PLAN_CATALOG_PATH.read_text(encoding="utf-8"))
+  plans = catalog.get("plans", [])
+
+  if len(plans) != 25:
+    raise RuntimeError(f"Expected 25 plans in plan_catalog.json, found {len(plans)}")
+
+  personas = {}
+  if PLAN_MAPPING_PATH.exists():
+    mapping = json.loads(PLAN_MAPPING_PATH.read_text(encoding="utf-8"))
+    personas = {row["planId"]: row.get("persona", "") for row in mapping.get("mappings", [])}
+
+  lines = []
+
+  for index, plan in enumerate(plans, start=1):
+    if plan.get("dailySharedPoolGb") is not None:
+      allowance = f"{plan['dailySharedPoolGb']}GB/day shared pool"
+    elif plan.get("dailyPoolGb") is not None:
+      allowance = f"{plan['dailyPoolGb']}GB/day pooled data"
+    else:
+      allowance = f"{plan.get('dailyDataGb')}GB/day data"
+
+    covers = ""
+    if plan.get("members"):
+      covers = f", up to {plan['members']} family members"
+    elif plan.get("employees"):
+      covers = f", up to {plan['employees']} employees"
+
+    persona = personas.get(plan["id"], "")
+    persona_text = f", suits: {persona}" if persona else ""
+
+    lines.append(
+      f"{index}. {plan['name']} [{plan['category']}] - Rs {plan['price']} - {allowance}{covers}, "
+      f"validity: {plan['validityDays']} days, differentiator: {plan.get('differentiator', 'n/a')}"
+      f"{persona_text}"
+    )
+
+  return "\n".join(lines)
+
+
+PLANS_LIST = load_plans()
 
 SYSTEM_PROMPT = f"""
 You are a telecom tariff advisor chatbot. Your job is to have a short,
 natural conversation with the customer to understand their usage needs,
-then recommend the best-fit plans from the fixed catalogue below.
+then recommend the best-fit plans from the fixed 25-plan catalogue below.
 
 AVAILABLE PLANS (this is the complete catalogue — never invent a plan
 that is not in this list, never mention any other operator's plan):

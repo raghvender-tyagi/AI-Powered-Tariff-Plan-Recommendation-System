@@ -17,8 +17,10 @@ export function AnalysisSequence({ onDone, stageDuration = 620 }) {
 
   useEffect(() => {
     if (activeIndex >= STAGES.length) {
-      const t = setTimeout(onDone, 450);
-      return () => clearTimeout(t);
+      // Keep asking: onDone is a no-op until the API call behind this
+      // sequence has actually returned, so the animation waits for real work.
+      const t = setInterval(onDone, 400);
+      return () => clearInterval(t);
     }
     const t = setTimeout(() => setActiveIndex((i) => i + 1), stageDuration);
     return () => clearTimeout(t);

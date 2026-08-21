@@ -4,17 +4,17 @@ const csv = require("csv-parser");
 
 const featuresPath = path.join(
   __dirname,
-  "../../../data/processed/customer_features.csv"
+  "../../data/processed/customer_features.csv"
 );
 
 const clustersPath = path.join(
   __dirname,
-  "../../../data/processed/customer_clusters.csv"
+  "../../data/processed/customer_clusters.csv"
 );
 
 const outputPath = path.join(
   __dirname,
-  "../../../data/processed/cluster_profiles.json"
+  "../../data/processed/cluster_profiles.json"
 );
 
 const featureRows = [];

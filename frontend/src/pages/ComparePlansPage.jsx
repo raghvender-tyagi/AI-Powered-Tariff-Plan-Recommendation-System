@@ -1,19 +1,21 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Scale } from 'lucide-react';
-import { SectionHeading, Button, EmptyState, DemoBadge, Skeleton, ErrorState } from '@/components/ui/Primitives';
+import { SectionHeading, Button, EmptyState, Skeleton, ErrorState } from '@/components/ui/Primitives';
 import { PlanPicker } from '@/components/compare/PlanPicker';
 import { ComparisonTable } from '@/components/compare/ComparisonTable';
 import { AIVerdictBadges } from '@/components/compare/AIVerdictBadges';
-import { OperatorCompare } from '@/components/shared/OperatorCompare';
+import { CategoryCompare } from '@/components/shared/OperatorCompare';
 import { useAppStore } from '@/store/useAppStore';
-import { getPlans } from '@/api/plans';
-import { useEffect, useState } from 'react';
+import { getPlans, comparePlans } from '@/api/plans';
 
 export default function ComparePlansPage() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [demo, setDemo] = useState(false);
+  const [comparison, setComparison] = useState(null);
+  const [comparing, setComparing] = useState(false);
+  const [compareError, setCompareError] = useState(null);
+
   const compareIds = useAppStore((s) => s.compareIds);
   const toggleCompare = useAppStore((s) => s.toggleCompare);
   const clearCompare = useAppStore((s) => s.clearCompare);
@@ -22,69 +24,103 @@ export default function ComparePlansPage() {
   useEffect(() => {
     let mounted = true;
     getPlans()
-      .then(({ data, demo: isDemo }) => {
+      .then(({ data }) => {
         if (!mounted) return;
         setPlans(data);
-        setDemo(isDemo);
         setLoading(false);
       })
-      .catch((e) => mounted && (setError(e), setLoading(false)));
+      .catch((err) => {
+        if (!mounted) return;
+        setError(err);
+        setLoading(false);
+      });
     return () => {
       mounted = false;
     };
   }, []);
 
-  const entries = useMemo(() => {
-    return compareIds
-      .map((id, i) => {
-        const plan = plans.find((p) => p._id === id);
-        if (!plan) return null;
-        const rec = lastRecommendations?.find((r) => r.planId === id);
-        return rec ? { ...rec, plan } : { plan, rank: i + 1 };
+  // Match scores come from the last engine response — never recomputed here.
+  const matchScores = useMemo(() => {
+    const scores = {};
+    for (const id of compareIds) {
+      const entry = lastRecommendations?.find((rec) => rec.planId === id);
+      if (entry && Number.isFinite(entry.matchPercent)) scores[id] = entry.matchPercent;
+    }
+    return scores;
+  }, [compareIds, lastRecommendations]);
+
+  useEffect(() => {
+    if (compareIds.length < 2) {
+      setComparison(null);
+      setCompareError(null);
+      return;
+    }
+
+    let mounted = true;
+    setComparing(true);
+    setCompareError(null);
+
+    comparePlans(compareIds, matchScores)
+      .then(({ data }) => {
+        if (!mounted) return;
+        setComparison(data);
+        setComparing(false);
       })
-      .filter(Boolean);
-  }, [compareIds, plans, lastRecommendations]);
+      .catch((err) => {
+        if (!mounted) return;
+        setCompareError(err);
+        setComparing(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [compareIds, matchScores]);
 
   if (loading) return <Skeleton className="h-96" />;
-  if (error) return <ErrorState description="We couldn't load the plan catalogue." />;
+  if (error) return <ErrorState description={error.message} />;
 
   return (
     <div className="space-y-8">
       <SectionHeading
         eyebrow="Compare plans"
         title="See exactly how plans stack up"
-        description="Add up to 4 plans and compare price, data, calling, SMS, roaming and validity side-by-side."
-      >
-        {demo && <DemoBadge />}
-      </SectionHeading>
+        description={`Add up to 4 of the ${plans.length} catalogue plans and compare price, daily data, validity, coverage and value per GB side by side.`}
+      />
 
       <PlanPicker plans={plans} selectedIds={compareIds} onToggle={toggleCompare} />
 
-      {entries.length === 0 ? (
+      {compareIds.length === 0 ? (
         <EmptyState
           icon={Scale}
           title="Nothing to compare yet"
-          description="Search above and add at least two plans to see a full side-by-side comparison."
+          description="Search above and add at least two plans to see the full side-by-side comparison."
         />
-      ) : entries.length === 1 ? (
+      ) : compareIds.length === 1 ? (
         <EmptyState
           icon={Scale}
           title="Add one more plan"
-          description="Comparisons need at least two plans — add another to see the table and AI verdict."
+          description="Comparisons need at least two plans — add another to see the table and the AI verdict."
         />
+      ) : comparing ? (
+        <Skeleton className="h-72" />
+      ) : compareError ? (
+        <ErrorState description={compareError.message} />
       ) : (
-        <>
-          <AIVerdictBadges entries={entries} />
-          <ComparisonTable entries={entries} />
-          <div className="flex justify-end">
-            <Button variant="ghost" size="sm" onClick={clearCompare}>
-              Clear comparison
-            </Button>
-          </div>
-        </>
+        comparison && (
+          <>
+            <AIVerdictBadges verdicts={comparison.verdicts} />
+            <ComparisonTable comparison={comparison} matchScores={matchScores} />
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" onClick={clearCompare}>
+                Clear comparison
+              </Button>
+            </div>
+          </>
+        )
       )}
 
-      <OperatorCompare plans={plans} />
+      <CategoryCompare plans={plans} />
     </div>
   );
 }
