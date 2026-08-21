@@ -1,350 +1,799 @@
 const fs = require("fs");
 const path = require("path");
-const csv = require("csv-parser");
 
-const FEATURES_PATH = path.join(__dirname, "../../../data/processed/customer_features.csv");
-const CLUSTERS_PATH = path.join(__dirname, "../../../data/processed/customer_clusters.csv");
-const PROFILES_PATH = path.join(__dirname, "../../../data/processed/cluster_profiles.json");
-const CATALOG_PATH = path.join(__dirname, "../../../data/processed/plan_catalog.json");
-const OUTPUT_PATH = path.join(__dirname, "../../../data/processed/recommendation_sample.json");
+// =====================================================
+// PATHS
+// =====================================================
 
-const PERSONAL_CATEGORIES = ["FLEX", "PLAY", "PRIME"];
+const DATA_PATH = path.join(
+  __dirname,
+  "../../data/processed"
+);
 
-function readCSV(filePath) {
-  return new Promise((resolve, reject) => {
-    const rows = [];
-    fs.createReadStream(filePath)
-      .pipe(csv())
-      .on("data", row => rows.push(row))
-      .on("end", () => resolve(rows))
-      .on("error", reject);
-  });
-}
+const PLAN_CATALOG_PATH = path.join(
+  DATA_PATH,
+  "plan_catalog.json"
+);
 
-function num(v, fallback = 0) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
+const CLUSTER_PROFILE_PATH = path.join(
+  DATA_PATH,
+  "cluster_profiles.json"
+);
 
-function clamp(v, min = 0, max = 1) {
-  return Math.max(min, Math.min(max, v));
-}
+const PLAN_MAPPING_PATH = path.join(
+  DATA_PATH,
+  "plan_cluster_mapping.json"
+);
 
-function pctScore(actual, allowance, tolerance = 1.0) {
-  if (!Number.isFinite(allowance) || allowance <= 0) return 0;
-  const ratio = actual / allowance;
-  if (ratio <= 1) return clamp(ratio);
-  return clamp(1 - ((ratio - 1) / tolerance));
-}
+const OUTPUT_PATH = path.join(
+  DATA_PATH,
+  "recommendation_sample.json"
+);
 
-function priceScore(monthlyRecharge, planPrice) {
-  if (!planPrice || planPrice <= 0) return 0;
-  if (!monthlyRecharge || monthlyRecharge <= 0) return 0.65;
-  const ratio = planPrice / monthlyRecharge;
+// =====================================================
+// RECOMMENDATION ENGINE
+// =====================================================
 
-  if (ratio <= 0.85) return 0.95;
-  if (ratio <= 1.00) return 0.90;
-  if (ratio <= 1.15) return 0.78;
-  if (ratio <= 1.35) return 0.60;
-  if (ratio <= 1.60) return 0.40;
-  return 0.20;
-}
-
-function validityScore(planDays) {
-  if (planDays >= 365) return 1.0;
-  if (planDays >= 180) return 0.95;
-  if (planDays >= 84) return 0.85;
-  if (planDays >= 56) return 0.75;
-  return 0.60;
-}
-
-function benefitScore(customer, plan) {
-  let score = 0;
-  const streaming = num(customer.streaming_hours);
-  const roamingData = num(customer.roaming_data_gb);
-  const international = num(customer.international_minutes);
-
-  if (plan.category === "PLAY" && streaming >= 25) score += 0.8;
-  if (plan.category === "PRIME" && (streaming >= 50 || num(customer.monthly_recharge) >= 600)) score += 0.7;
-  if (plan.category === "FLEX" && streaming < 25) score += 0.5;
-  if (roamingData >= 2 && plan.features?.some(x => /roaming/i.test(x))) score += 0.9;
-  if (international >= 20 && plan.selectableBenefits && plan.benefitOptions?.includes("Roaming")) score += 0.9;
-
-  if (plan.dataBank?.enabled && num(customer.monthly_data_gb) > 10) score += 0.2;
-  if (plan.smartBoost?.eligible) score += 0.1;
-
-  return clamp(score);
-}
-
-function usageScore(customer, plan) {
-  const monthlyData = num(customer.monthly_data_gb);
-  const streaming = num(customer.streaming_hours);
-  const hotspot = num(customer.hotspot_data_gb);
-  const voice = num(customer.monthly_voice_minutes);
-
-  if (plan.category === "FAMILY" || plan.category === "BUSINESS") return 0;
-
-  const dataAllowance = num(plan.dataGbTotal);
-  const dataScore = dataAllowance > 0 ? pctScore(monthlyData, dataAllowance, 1.5) : 0;
-
-  // Streaming is a behavior signal; it should influence the score but not dominate data.
-  const streamingScore =
-    plan.category === "PLAY"
-      ? clamp(streaming / 80)
-      : clamp(streaming / 120);
-
-  const hotspotScore =
-    hotspot > 0
-      ? clamp(hotspot / Math.max(1, (dataAllowance || 10) * 0.20))
-      : 0;
-
-  // Voice is deliberately a smaller signal because the market plans are generally unlimited-voice.
-  const voiceScore = clamp(voice / 300);
-
-  return clamp(
-    (dataScore * 0.55) +
-    (streamingScore * 0.25) +
-    (hotspotScore * 0.10) +
-    (voiceScore * 0.10)
-  );
-}
-
-function allowanceScore(customer, plan) {
-  if (plan.category === "FAMILY" || plan.category === "BUSINESS") return 0;
-
-  const monthlyData = num(customer.monthly_data_gb);
-  const allowance = num(plan.dataGbTotal);
-
-  if (!allowance) return 0;
-
-  // Penalize both severe under-coverage and extreme over-allocation.
-  if (monthlyData <= allowance) return clamp(monthlyData / allowance);
-  const over = monthlyData / allowance;
-  return clamp(1 - ((over - 1) / 1.5));
-}
-
-function eligibility(plan, mode, extra = {}) {
-  if (mode === "personal") return PERSONAL_CATEGORIES.includes(plan.category);
-
-  if (mode === "family") {
-    const members = num(extra.members);
-    return plan.category === "FAMILY" && members > 0 && plan.members >= members;
-  }
-
-  if (mode === "business") {
-    const employees = num(extra.employees);
-    return plan.category === "BUSINESS" && employees > 0 && plan.maxEmployees >= employees;
-  }
-
-  return false;
-}
-
-function scorePlan(customer, plan, mode = "personal", extra = {}) {
-  const weights = {
-    usageCompatibility: 0.40,
-    priceEfficiency: 0.25,
-    allowanceCoverage: 0.20,
-    benefitMatch: 0.10,
-    validityMatch: 0.05
-  };
-
-  const usage = mode === "personal" ? usageScore(customer, plan) : 0.75;
-  const price = priceScore(num(customer.monthly_recharge), plan.price);
-  const allowance = mode === "personal" ? allowanceScore(customer, plan) : 0.75;
-  const benefits = mode === "personal" ? benefitScore(customer, plan) : 0.75;
-  const validity = validityScore(plan.validityDays);
-
-  const score =
-    usage * weights.usageCompatibility +
-    price * weights.priceEfficiency +
-    allowance * weights.allowanceCoverage +
-    benefits * weights.benefitMatch +
-    validity * weights.validityMatch;
-
-  return {
-    usageCompatibility: Number((usage * 100).toFixed(1)),
-    priceEfficiency: Number((price * 100).toFixed(1)),
-    allowanceCoverage: Number((allowance * 100).toFixed(1)),
-    benefitMatch: Number((benefits * 100).toFixed(1)),
-    validityMatch: Number((validity * 100).toFixed(1)),
-    score: Number((score * 100).toFixed(2))
-  };
-}
-
-function explanation(customer, plan, scores) {
-  const reasons = [];
-  const data = num(customer.monthly_data_gb);
-  const streaming = num(customer.streaming_hours);
-  const recharge = num(customer.monthly_recharge);
-
-  if (scores.usageCompatibility >= 75) {
-    reasons.push("strong match to your usage behavior");
-  }
-  if (scores.priceEfficiency >= 80) {
-    reasons.push("price is close to or below your current recharge level");
-  }
-  if (scores.allowanceCoverage >= 75) {
-    reasons.push("allowance covers your observed data usage without excessive capacity");
-  }
-  if (plan.category === "PLAY" && streaming >= 25) {
-    reasons.push("your streaming usage makes the entertainment benefits relevant");
-  }
-  if (plan.category === "FLEX" && recharge < 450) {
-    reasons.push("offers a lower-cost route for a price-sensitive user");
-  }
-  if (plan.category === "PRIME" && (data >= 25 || recharge >= 650)) {
-    reasons.push("fits a higher-value/heavy-usage profile");
-  }
-  if (reasons.length === 0) reasons.push("balanced overall value across the scoring dimensions");
-
-  return reasons.slice(0, 3);
-}
-
-function smartBoostSuggestion(customer, ranked) {
-  const top = ranked[0];
-  if (!top || !top.plan.smartBoost?.eligible) return null;
-
-  const data = num(customer.monthly_data_gb);
-  const allowance = num(top.plan.dataGbTotal);
-
-  if (allowance > 0 && data <= allowance * 1.15) {
-    return {
-      type: "temporary_boost",
-      message: "Your usage is close to the plan allowance. A temporary Smart Boost may be better than permanently upgrading.",
-      options: top.plan.smartBoost.options
+class RecommendationEngine {
+  constructor() {
+    // Group 2 scoring requirement
+    this.weights = {
+      usageFit: 0.40,
+      budgetFit: 0.30,
+      personaMatch: 0.30
     };
   }
 
-  return null;
-}
+  // ===================================================
+  // LOAD JSON
+  // ===================================================
 
-function buildRecommendation(customer, plans, mode = "personal", extra = {}) {
-  const eligible = plans.filter(p => eligibility(p, mode, extra));
+  loadJson(filePath) {
+    if (!fs.existsSync(filePath)) {
+      throw new Error(
+        `File not found: ${filePath}`
+      );
+    }
 
-  const ranked = eligible
-    .map(plan => {
-      const scores = scorePlan(customer, plan, mode, extra);
-      return {
-        plan,
-        ...scores,
-        explanation: explanation(customer, plan, scores)
-      };
-    })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
-
-  return {
-    customerId: customer.customer_id,
-    mode,
-    behavior: {
-      monthlyDataGb: num(customer.monthly_data_gb),
-      streamingHours: num(customer.streaming_hours),
-      hotspotDataGb: num(customer.hotspot_data_gb),
-      monthlyVoiceMinutes: num(customer.monthly_voice_minutes),
-      totalCalls: num(customer.total_calls),
-      monthlySms: num(customer.monthly_sms),
-      internationalMinutes: num(customer.international_minutes),
-      roamingDataGb: num(customer.roaming_data_gb),
-      monthlyRecharge: num(customer.monthly_recharge),
-      tenureMonths: num(customer.tenure_months)
-    },
-    top3: ranked.map((r, i) => ({
-      rank: i + 1,
-      planId: r.plan.planId,
-      name: r.plan.name,
-      category: r.plan.category,
-      price: r.plan.price,
-      validityDays: r.plan.validityDays,
-      dailyDataGb: r.plan.dailyDataGb,
-      dataGbTotal: r.plan.dataGbTotal,
-      score: r.score,
-      scoreBreakdown: {
-        usageCompatibility: r.usageCompatibility,
-        priceEfficiency: r.priceEfficiency,
-        allowanceCoverage: r.allowanceCoverage,
-        benefitMatch: r.benefitMatch,
-        validityMatch: r.validityMatch
-      },
-      explanation: r.explanation,
-      features: r.plan.features || [],
-      benefits: r.plan.benefits || []
-    })),
-    smartBoost: smartBoostSuggestion(customer, ranked)
-  };
-}
-
-async function main() {
-  const [customers, clusterRows] = await Promise.all([
-    readCSV(FEATURES_PATH),
-    readCSV(CLUSTERS_PATH)
-  ]);
-
-  const profiles = JSON.parse(fs.readFileSync(PROFILES_PATH, "utf8"));
-  const catalog = JSON.parse(fs.readFileSync(CATALOG_PATH, "utf8"));
-
-  const clusterMap = new Map(
-    clusterRows.map(r => [r.customer_id, num(r.cluster)])
-  );
-
-  // Demo the first customer. The API can call buildRecommendation()
-  // for any customer_id later.
-  const customer = customers[0];
-  const cluster = clusterMap.get(customer.customer_id);
-
-  const result = buildRecommendation(
-    customer,
-    catalog.plans,
-    "personal"
-  );
-
-  result.cluster = cluster;
-  result.clusterPersona =
-    profiles.clusters?.[String(cluster)]?.preliminaryPersona || "Unknown";
-
-  fs.writeFileSync(
-    OUTPUT_PATH,
-    JSON.stringify(result, null, 2),
-    "utf8"
-  );
-
-  console.log("\n========================================");
-  console.log("       SMART TARIFF RECOMMENDATION");
-  console.log("========================================");
-  console.log("Customer:", result.customerId);
-  console.log("Cluster:", result.cluster);
-  console.log("Persona:", result.clusterPersona);
-
-  console.log("\n---------- BEHAVIOR ----------");
-  console.log("Data:", result.behavior.monthlyDataGb, "GB/month");
-  console.log("Streaming:", result.behavior.streamingHours, "hours/month");
-  console.log("Hotspot:", result.behavior.hotspotDataGb, "GB/month");
-  console.log("Voice:", result.behavior.monthlyVoiceMinutes, "minutes/month");
-  console.log("Recharge: ₹" + result.behavior.monthlyRecharge);
-
-  console.log("\n---------- TOP 3 ----------");
-  result.top3.forEach(p => {
-    console.log(`#${p.rank} ${p.name} | ${p.category} | ₹${p.price} | Score ${p.score}/100`);
-    console.log("   Why:", p.explanation.join("; "));
-  });
-
-  if (result.smartBoost) {
-    console.log("\nSmart Boost:", result.smartBoost.message);
-    console.log("Options:", result.smartBoost.options.join(", "));
+    try {
+      return JSON.parse(
+        fs.readFileSync(
+          filePath,
+          "utf8"
+        )
+      );
+    } catch (error) {
+      throw new Error(
+        `Invalid JSON: ${filePath}\n${error.message}`
+      );
+    }
   }
 
-  console.log("\nOutput:", OUTPUT_PATH);
-  console.log("========================================\n");
+  // ===================================================
+  // LOAD 25 PLANS
+  // ===================================================
+
+  loadPlanCatalog() {
+    const catalog =
+      this.loadJson(
+        PLAN_CATALOG_PATH
+      );
+
+    if (
+      !Array.isArray(
+        catalog.plans
+      )
+    ) {
+      throw new Error(
+        "plan_catalog.json does not contain plans."
+      );
+    }
+
+    if (
+      catalog.plans.length !== 25
+    ) {
+      throw new Error(
+        `Expected 25 plans, found ${catalog.plans.length}.`
+      );
+    }
+
+    return catalog;
+  }
+
+  // ===================================================
+  // LOAD CLUSTER PROFILES
+  // ===================================================
+
+  loadClusterProfiles() {
+    const profiles =
+      this.loadJson(
+        CLUSTER_PROFILE_PATH
+      );
+
+    if (
+      !profiles.clusters
+    ) {
+      throw new Error(
+        "cluster_profiles.json does not contain clusters."
+      );
+    }
+
+    return Object.values(
+      profiles.clusters
+    );
+  }
+
+  // ===================================================
+  // LOAD PLAN → CLUSTER MAPPING
+  // ===================================================
+
+  loadPlanMapping() {
+    const mapping =
+      this.loadJson(
+        PLAN_MAPPING_PATH
+      );
+
+    if (
+      !Array.isArray(
+        mapping.mappings
+      )
+    ) {
+      throw new Error(
+        "plan_cluster_mapping.json does not contain mappings."
+      );
+    }
+
+    if (
+      mapping.mappings.length !== 25
+    ) {
+      throw new Error(
+        `Expected 25 mappings, found ${mapping.mappings.length}.`
+      );
+    }
+
+    return mapping.mappings;
+  }
+
+  // ===================================================
+  // USAGE FIT
+  // ===================================================
+
+  calculateUsageFit(
+    customer,
+    plan
+  ) {
+    const monthlyData =
+      Number(
+        customer.monthly_data_gb || 0
+      );
+
+    const streamingHours =
+      Number(
+        customer.streaming_hours || 0
+      );
+
+    const voiceMinutes =
+      Number(
+        customer.monthly_voice_minutes || 0
+      );
+
+    // -----------------------------------------------
+    // Estimate monthly data allowance
+    // -----------------------------------------------
+
+    let monthlyAllowance = 0;
+
+    if (
+      plan.dailyDataGb !== undefined &&
+      plan.dailyDataGb !== null
+    ) {
+      monthlyAllowance =
+        Number(
+          plan.dailyDataGb
+        ) * 30;
+    }
+
+    if (
+      plan.dailySharedPoolGb !== undefined &&
+      plan.dailySharedPoolGb !== null
+    ) {
+      monthlyAllowance =
+        Number(
+          plan.dailySharedPoolGb
+        ) * 30;
+    }
+
+    if (
+      plan.dailyPoolGb !== undefined &&
+      plan.dailyPoolGb !== null
+    ) {
+      monthlyAllowance =
+        Number(
+          plan.dailyPoolGb
+        ) * 30;
+    }
+
+    // -----------------------------------------------
+    // Data usage fit
+    // -----------------------------------------------
+
+    let dataFit = 70;
+
+    if (
+      monthlyData > 0 &&
+      monthlyAllowance > 0
+    ) {
+      if (
+        monthlyAllowance >=
+        monthlyData
+      ) {
+        const coverage =
+          monthlyAllowance /
+          monthlyData;
+
+        dataFit = Math.min(
+          100,
+          80 +
+            Math.min(
+              20,
+              coverage * 5
+            )
+        );
+      } else {
+        dataFit =
+          Math.max(
+            0,
+            Math.min(
+              100,
+              (
+                monthlyAllowance /
+                monthlyData
+              ) * 100
+            )
+          );
+      }
+    }
+
+    let usageFit =
+      dataFit;
+
+    // -----------------------------------------------
+    // Streaming adjustment
+    // -----------------------------------------------
+
+    if (
+      streamingHours >= 30
+    ) {
+      if (
+        plan.category === "PLAY" ||
+        plan.category === "PRIME"
+      ) {
+        usageFit += 10;
+      } else {
+        usageFit -= 10;
+      }
+    }
+
+    // -----------------------------------------------
+    // Voice adjustment
+    // -----------------------------------------------
+
+    if (
+      voiceMinutes >= 300
+    ) {
+      if (
+        plan.category === "BUSINESS" ||
+        plan.category === "FAMILY"
+      ) {
+        usageFit += 5;
+      }
+    }
+
+    return Math.max(
+      0,
+      Math.min(
+        100,
+        usageFit
+      )
+    );
+  }
+
+  // ===================================================
+  // BUDGET FIT
+  // ===================================================
+
+  calculateBudgetFit(
+    customer,
+    plan
+  ) {
+    const budget =
+      Number(
+        customer.monthly_recharge ||
+        customer.budget ||
+        0
+      );
+
+    const price =
+      Number(
+        plan.price || 0
+      );
+
+    if (
+      budget <= 0
+    ) {
+      return 70;
+    }
+
+    // Within budget
+    if (
+      price <= budget
+    ) {
+      const savingRatio =
+        (
+          budget - price
+        ) / budget;
+
+      return Math.min(
+        100,
+        80 +
+          savingRatio * 20
+      );
+    }
+
+    // Over budget
+    const overBudget =
+      (
+        price - budget
+      ) / budget;
+
+    return Math.max(
+      0,
+      100 -
+        overBudget * 100
+    );
+  }
+
+  // ===================================================
+  // PERSONA MATCH
+  // ===================================================
+
+  calculatePersonaMatch(
+    cluster,
+    mapping
+  ) {
+    if (
+      !cluster ||
+      !mapping
+    ) {
+      return 50;
+    }
+
+    const clusterPersona =
+      String(
+        cluster.preliminaryPersona ||
+        ""
+      ).toLowerCase();
+
+    const mappedPersona =
+      String(
+        mapping.persona ||
+        ""
+      ).toLowerCase();
+
+    // Exact persona match
+    if (
+      clusterPersona ===
+      mappedPersona
+    ) {
+      return 100;
+    }
+
+    // Heavy data persona
+    if (
+      clusterPersona.includes(
+        "heavy data"
+      )
+    ) {
+      if (
+        mapping.category === "PLAY" ||
+        mapping.category === "PRIME"
+      ) {
+        return 90;
+      }
+    }
+
+    // General persona
+    if (
+      clusterPersona.includes(
+        "moderate"
+      )
+    ) {
+      if (
+        mapping.category === "FLEX" ||
+        mapping.category === "FAMILY" ||
+        mapping.category === "BUSINESS"
+      ) {
+        return 90;
+      }
+    }
+
+    return 50;
+  }
+
+  // ===================================================
+  // FINAL SCORE
+  // ===================================================
+
+  calculateScore(
+    customer,
+    plan,
+    cluster,
+    mapping
+  ) {
+    const usageFit =
+      this.calculateUsageFit(
+        customer,
+        plan
+      );
+
+    const budgetFit =
+      this.calculateBudgetFit(
+        customer,
+        plan
+      );
+
+    const personaMatch =
+      this.calculatePersonaMatch(
+        cluster,
+        mapping
+      );
+
+    const finalScore =
+      (
+        usageFit *
+        this.weights.usageFit
+      ) +
+      (
+        budgetFit *
+        this.weights.budgetFit
+      ) +
+      (
+        personaMatch *
+        this.weights.personaMatch
+      );
+
+    return {
+      usageFit:
+        Number(
+          usageFit.toFixed(2)
+        ),
+
+      budgetFit:
+        Number(
+          budgetFit.toFixed(2)
+        ),
+
+      personaMatch:
+        Number(
+          personaMatch.toFixed(2)
+        ),
+
+      finalScore:
+        Number(
+          finalScore.toFixed(2)
+        )
+    };
+  }
+
+  // ===================================================
+  // RECOMMEND TOP 3
+  // ===================================================
+
+  recommend(
+    customer,
+    clusterId
+  ) {
+    const catalog =
+      this.loadPlanCatalog();
+
+    const clusters =
+      this.loadClusterProfiles();
+
+    const mappings =
+      this.loadPlanMapping();
+
+    const cluster =
+      clusters.find(
+        item =>
+          Number(
+            item.cluster
+          ) ===
+          Number(clusterId)
+      );
+
+    if (!cluster) {
+      throw new Error(
+        `Cluster ${clusterId} not found.`
+      );
+    }
+
+    // -----------------------------------------------
+    // Score ALL 25 plans
+    // -----------------------------------------------
+
+    const scoredPlans =
+      catalog.plans.map(
+        plan => {
+          const mapping =
+            mappings.find(
+              item =>
+                item.planId ===
+                plan.id
+            );
+
+          if (!mapping) {
+            throw new Error(
+              `No cluster mapping found for ${plan.id}.`
+            );
+          }
+
+          const score =
+            this.calculateScore(
+              customer,
+              plan,
+              cluster,
+              mapping
+            );
+
+          return {
+            planId:
+              plan.id,
+
+            planName:
+              plan.name,
+
+            category:
+              plan.category,
+
+            price:
+              plan.price,
+
+            clusterId:
+              mapping.clusterId,
+
+            persona:
+              mapping.persona,
+
+            score:
+              score.finalScore,
+
+            usageFit:
+              score.usageFit,
+
+            budgetFit:
+              score.budgetFit,
+
+            personaMatch:
+              score.personaMatch
+          };
+        }
+      );
+
+    // -----------------------------------------------
+    // Rank highest score first
+    // -----------------------------------------------
+
+    scoredPlans.sort(
+      (a, b) =>
+        b.score -
+        a.score
+    );
+
+    return {
+      customerId:
+        customer.customer_id ||
+        null,
+
+      clusterId:
+        Number(clusterId),
+
+      persona:
+        cluster.preliminaryPersona,
+
+      plansEvaluated:
+        scoredPlans.length,
+
+      top3:
+        scoredPlans.slice(
+          0,
+          3
+        ),
+
+      scoringWeights: {
+        usageFit: "40%",
+        budgetFit: "30%",
+        personaMatch: "30%"
+      }
+    };
+  }
+
+  // ===================================================
+  // SAVE OUTPUT
+  // ===================================================
+
+  saveResult(result) {
+    fs.writeFileSync(
+      OUTPUT_PATH,
+      JSON.stringify(
+        result,
+        null,
+        2
+      ),
+      "utf8"
+    );
+  }
 }
 
-module.exports = {
-  buildRecommendation,
-  scorePlan,
-  eligibility
-};
+// =====================================================
+// TEST / DEMONSTRATION
+// =====================================================
 
-if (require.main === module) {
-  main().catch(err => {
-    console.error("\nRECOMMENDATION ENGINE ERROR:", err.message);
+if (
+  require.main === module
+) {
+  try {
+    const engine =
+      new RecommendationEngine();
+
+    const customer = {
+      customer_id:
+        "CUST00001",
+
+      monthly_data_gb:
+        6.25,
+
+      streaming_hours:
+        15.46,
+
+      monthly_voice_minutes:
+        232.47,
+
+      monthly_recharge:
+        376.99
+    };
+
+    // Cluster 0:
+    // Moderate / General Users
+    const clusterId = 0;
+
+    const result =
+      engine.recommend(
+        customer,
+        clusterId
+      );
+
+    engine.saveResult(
+      result
+    );
+
+    console.log(
+      "========================================"
+    );
+
+    console.log(
+      "       SMART TARIFF RECOMMENDATION"
+    );
+
+    console.log(
+      "========================================"
+    );
+
+    console.log(
+      `Customer: ${result.customerId}`
+    );
+
+    console.log(
+      `Cluster: ${result.clusterId}`
+    );
+
+    console.log(
+      `Persona: ${result.persona}`
+    );
+
+    console.log(
+      `Plans evaluated: ${result.plansEvaluated}`
+    );
+
+    console.log("");
+
+    console.log(
+      "---------- TOP 3 ----------"
+    );
+
+    result.top3.forEach(
+      (plan, index) => {
+        console.log("");
+
+        console.log(
+          `${index + 1}. ${plan.planName}`
+        );
+
+        console.log(
+          `   Category: ${plan.category}`
+        );
+
+        console.log(
+          `   Price: ₹${plan.price}`
+        );
+
+        console.log(
+          `   Score: ${plan.score}`
+        );
+
+        console.log(
+          `   Usage Fit: ${plan.usageFit}`
+        );
+
+        console.log(
+          `   Budget Fit: ${plan.budgetFit}`
+        );
+
+        console.log(
+          `   Persona Match: ${plan.personaMatch}`
+        );
+
+        console.log(
+          `   Cluster: ${plan.clusterId}`
+        );
+      }
+    );
+
+    console.log("");
+
+    console.log(
+      "---------- SCORING WEIGHTS ----------"
+    );
+
+    console.log(
+      "Usage Fit: 40%"
+    );
+
+    console.log(
+      "Budget Fit: 30%"
+    );
+
+    console.log(
+      "Persona Match: 30%"
+    );
+
+    console.log("");
+
+    console.log(
+      `Output: ${OUTPUT_PATH}`
+    );
+
+    console.log("");
+
+    console.log(
+      "Top-3 recommendation scoring: PASS"
+    );
+
+    console.log(
+      "========================================"
+    );
+
+  } catch (error) {
+    console.error(
+      "RECOMMENDATION ERROR:"
+    );
+
+    console.error(
+      error.message
+    );
+
     process.exit(1);
-  });
+  }
 }
+
+module.exports =
+  RecommendationEngine;

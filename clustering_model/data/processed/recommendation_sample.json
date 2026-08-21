@@ -1,20 +1,49 @@
 {
   "customerId": "CUST00001",
-  "mode": "personal",
-  "behavior": {
-    "monthlyDataGb": 2.7,
-    "streamingHours": 5.01,
-    "hotspotDataGb": 0.15,
-    "monthlyVoiceMinutes": 85.33,
-    "totalCalls": 40,
-    "monthlySms": 89,
-    "internationalMinutes": 1.71,
-    "roamingDataGb": 0.55,
-    "monthlyRecharge": 382.3,
-    "tenureMonths": 57.36164617187416
-  },
-  "top3": [],
-  "smartBoost": null,
-  "cluster": 0,
-  "clusterPersona": "Moderate / General Users"
+  "clusterId": 0,
+  "persona": "Moderate / General Users",
+  "plansEvaluated": 25,
+  "top3": [
+    {
+      "planId": "FLEX_3",
+      "planName": "Flex 3",
+      "category": "FLEX",
+      "price": 169,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "score": 97.31,
+      "usageFit": 100,
+      "budgetFit": 91.03,
+      "personaMatch": 100
+    },
+    {
+      "planId": "FLEX_2",
+      "planName": "Flex 2",
+      "category": "FLEX",
+      "price": 129,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "score": 97.15,
+      "usageFit": 98,
+      "budgetFit": 93.16,
+      "personaMatch": 100
+    },
+    {
+      "planId": "FLEX_4",
+      "planName": "Flex 4",
+      "category": "FLEX",
+      "price": 219,
+      "clusterId": 0,
+      "persona": "Moderate / General Users",
+      "score": 96.51,
+      "usageFit": 100,
+      "budgetFit": 88.38,
+      "personaMatch": 100
+    }
+  ],
+  "scoringWeights": {
+    "usageFit": "40%",
+    "budgetFit": "30%",
+    "personaMatch": "30%"
+  }
 }

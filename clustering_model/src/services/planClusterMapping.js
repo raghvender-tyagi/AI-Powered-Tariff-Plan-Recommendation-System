@@ -1,30 +1,27 @@
 const fs = require("fs");
 const path = require("path");
 
-const ROOT = path.resolve(__dirname, "../../..");
+const DATA_PATH = path.join(
+  __dirname,
+  "../../data/processed"
+);
 
-const PROFILE_PATH = path.join(
-  ROOT,
-  "data",
-  "processed",
+const CLUSTER_PROFILE_PATH = path.join(
+  DATA_PATH,
   "cluster_profiles.json"
 );
 
 const PLAN_CATALOG_PATH = path.join(
-  ROOT,
-  "data",
-  "processed",
+  DATA_PATH,
   "plan_catalog.json"
 );
 
 const OUTPUT_PATH = path.join(
-  ROOT,
-  "data",
-  "processed",
+  DATA_PATH,
   "plan_cluster_mapping.json"
 );
 
-function loadJSON(filePath) {
+function loadJson(filePath) {
   if (!fs.existsSync(filePath)) {
     throw new Error(`File not found: ${filePath}`);
   }
@@ -34,250 +31,341 @@ function loadJSON(filePath) {
   );
 }
 
-function main() {
-  console.log("========================================");
-  console.log("        PLAN → CLUSTER MAPPING");
-  console.log("========================================");
+function validatePlanCatalog(catalog) {
+  if (!Array.isArray(catalog.plans)) {
+    throw new Error(
+      "plan_catalog.json does not contain a plans array."
+    );
+  }
 
-  const clusterData =
-    loadJSON(PROFILE_PATH);
+  if (catalog.plans.length !== 25) {
+    throw new Error(
+      `Expected 25 plans, found ${catalog.plans.length}.`
+    );
+  }
 
-  const planData =
-    loadJSON(PLAN_CATALOG_PATH);
+  const categories = [
+    "FLEX",
+    "PLAY",
+    "FAMILY",
+    "BUSINESS",
+    "PRIME"
+  ];
 
-  // cluster_profiles.json stores clusters
-  // as an object: { "0": {...}, "1": {...} }
+  for (const category of categories) {
+    const count = catalog.plans.filter(
+      plan =>
+        String(plan.category).toUpperCase() ===
+        category
+    ).length;
+
+    if (count !== 5) {
+      throw new Error(
+        `${category} must contain 5 plans. Found ${count}.`
+      );
+    }
+  }
+}
+
+function getClusters(clusterProfiles) {
+  if (!clusterProfiles.clusters) {
+    throw new Error(
+      "cluster_profiles.json does not contain clusters."
+    );
+  }
+
+  return Object.values(
+    clusterProfiles.clusters
+  );
+}
+
+function findModerateCluster(clusters) {
+  return clusters.find(cluster =>
+    String(
+      cluster.preliminaryPersona || ""
+    )
+      .toLowerCase()
+      .includes("moderate")
+  );
+}
+
+function findHeavyDataCluster(clusters) {
+  return clusters.find(cluster =>
+    String(
+      cluster.preliminaryPersona || ""
+    )
+      .toLowerCase()
+      .includes("heavy data")
+  );
+}
+
+function getClusterForCategory(
+  category,
+  clusters
+) {
+  const moderate =
+    findModerateCluster(clusters);
+
+  const heavy =
+    findHeavyDataCluster(clusters);
+
+  switch (
+    String(category).toUpperCase()
+  ) {
+    case "PLAY":
+    case "PRIME":
+      return heavy || clusters[0];
+
+    case "FLEX":
+    case "FAMILY":
+    case "BUSINESS":
+      return moderate || clusters[0];
+
+    default:
+      return clusters[0];
+  }
+}
+
+function createMapping(
+  planCatalog,
+  clusterProfiles
+) {
+  validatePlanCatalog(planCatalog);
+
   const clusters =
-    Object.values(clusterData.clusters || {});
-
-  // plan_catalog.json stores plans as an array
-  const plans =
-    planData.plans || [];
+    getClusters(clusterProfiles);
 
   if (clusters.length === 0) {
     throw new Error(
-      "No cluster profiles found."
+      "No clusters found."
     );
   }
 
-  if (plans.length === 0) {
-    throw new Error(
-      "No tariff plans found."
-    );
-  }
-
-  console.log(
-    `Clusters: ${clusters.length}`
-  );
-
-  console.log(
-    `Plans: ${plans.length}`
-  );
-
-  const mapping = [];
-
-  for (const cluster of clusters) {
-    const clusterId =
-      cluster.cluster;
-
-    const persona =
-      cluster.preliminaryPersona;
-
-    const clusterPlans =
-      plans.filter(
-        plan =>
-          Number(plan.clusterId) ===
-          Number(clusterId)
+  return planCatalog.plans.map(plan => {
+    const cluster =
+      getClusterForCategory(
+        plan.category,
+        clusters
       );
 
-    const mappedPlans =
-      clusterPlans.map(plan => ({
-        planId: plan.id,
-        planName: plan.name,
-        price: plan.price,
-        dataLimitGb: plan.dataLimitGb,
-        voiceMinutes: plan.voiceMinutes,
-        description: plan.description,
-        recommendation: plan.recommendation,
-        targetSegment: plan.targetSegment,
-        retentionRisk: plan.retentionRisk,
-
-        expectedMonthlyRecharge:
-          plan.expectedMonthlyRecharge,
-
-        estimatedAvgDataGb:
-          plan.estimatedAvgDataGb,
-
-        estimatedAvgVoiceMinutes:
-          plan.estimatedAvgVoiceMinutes
-      }));
-
-    mapping.push({
-      clusterId,
-      persona,
-
+    return {
+      planId: plan.id,
+      planName: plan.name,
+      category: plan.category,
+      price: plan.price,
+      clusterId: Number(cluster.cluster),
+      persona: cluster.preliminaryPersona,
       customerCount:
         cluster.customerCount,
-
       customerPercentage:
-        cluster.customerPercentage,
-
-      clusterAverages:
-        cluster.averages,
-
-      plans: mappedPlans
-    });
-  }
-
-  const output = {
-    generatedAt:
-      new Date().toISOString(),
-
-    clusteringMethod:
-      "K-Means",
-
-    totalCustomers:
-      clusterData.totalCustomers,
-
-    totalClusters:
-      clusterData.clusterCount,
-
-    totalPlans:
-      planData.totalPlans,
-
-    mapping,
-
-    validation: {
-      allPlansMapped:
-        plans.every(plan =>
-          mapping.some(cluster =>
-            Number(cluster.clusterId) ===
-            Number(plan.clusterId)
-          )
-        ),
-
-      mappedPlanCount:
-        mapping.reduce(
-          (total, cluster) =>
-            total + cluster.plans.length,
-          0
-        ),
-
-      unmappedPlans:
-        plans
-          .filter(plan =>
-            !mapping.some(cluster =>
-              Number(cluster.clusterId) ===
-              Number(plan.clusterId)
-            )
-          )
-          .map(plan => plan.id)
-    }
-  };
-
-  fs.writeFileSync(
-    OUTPUT_PATH,
-    JSON.stringify(
-      output,
-      null,
-      2
-    )
-  );
-
-  console.log("");
-
-  for (const cluster of mapping) {
-    console.log(
-      "----------------------------------------"
-    );
-
-    console.log(
-      `Cluster ${cluster.clusterId}`
-    );
-
-    console.log(
-      `Persona: ${cluster.persona}`
-    );
-
-    console.log(
-      `Customers: ${cluster.customerCount} (${cluster.customerPercentage}%)`
-    );
-
-    console.log(
-      "Mapped plans:"
-    );
-
-    if (cluster.plans.length === 0) {
-      console.log(
-        "  No plans mapped"
-      );
-    } else {
-      cluster.plans.forEach(
-        (plan, index) => {
-          console.log(
-            `  ${index + 1}. ${plan.planName} - ₹${plan.price}`
-          );
-
-          console.log(
-            `     Data: ${plan.dataLimitGb} GB`
-          );
-
-          console.log(
-            `     Target: ${plan.targetSegment}`
-          );
-        }
-      );
-    }
-  }
-
-  console.log("");
-  console.log(
-    "---------- VALIDATION ----------"
-  );
-
-  console.log(
-    `All plans mapped: ${
-      output.validation.allPlansMapped
-        ? "YES"
-        : "NO"
-    }`
-  );
-
-  console.log(
-    `Mapped plans: ${
-      output.validation.mappedPlanCount
-    }`
-  );
-
-  console.log(
-    `Unmapped plans: ${
-      output.validation.unmappedPlans.length
-    }`
-  );
-
-  console.log("");
-
-  console.log(
-    `Output: ${OUTPUT_PATH}`
-  );
-
-  console.log("========================================");
-  console.log(
-    "Plan-cluster mapping: PASS"
-  );
-  console.log("========================================");
+        cluster.customerPercentage
+    };
+  });
 }
 
-try {
+function validateMapping(
+  mapping,
+  planCatalog
+) {
+  if (mapping.length !== 25) {
+    throw new Error(
+      `Expected 25 mappings, found ${mapping.length}.`
+    );
+  }
+
+  const ids = new Set(
+    mapping.map(item => item.planId)
+  );
+
+  if (ids.size !== 25) {
+    throw new Error(
+      "Duplicate plan IDs found."
+    );
+  }
+
+  for (const plan of planCatalog.plans) {
+    if (!ids.has(plan.id)) {
+      throw new Error(
+        `Plan not mapped: ${plan.id}`
+      );
+    }
+  }
+
+  const categories = [
+    "FLEX",
+    "PLAY",
+    "FAMILY",
+    "BUSINESS",
+    "PRIME"
+  ];
+
+  for (const category of categories) {
+    const count = mapping.filter(
+      item =>
+        item.category === category
+    ).length;
+
+    if (count !== 5) {
+      throw new Error(
+        `${category}: expected 5 mappings, found ${count}.`
+      );
+    }
+  }
+}
+
+function main() {
+  console.log(
+    "========================================"
+  );
+
+  console.log(
+    "       PLAN → CLUSTER MAPPING"
+  );
+
+  console.log(
+    "========================================"
+  );
+
+  try {
+    console.log(
+      `Data directory: ${DATA_PATH}`
+    );
+
+    console.log("");
+
+    const clusterProfiles =
+      loadJson(
+        CLUSTER_PROFILE_PATH
+      );
+
+    const planCatalog =
+      loadJson(
+        PLAN_CATALOG_PATH
+      );
+
+    const clusters =
+      getClusters(clusterProfiles);
+
+    console.log(
+      `Clusters: ${clusters.length}`
+    );
+
+    console.log(
+      `Plans: ${planCatalog.plans.length}`
+    );
+
+    const mapping =
+      createMapping(
+        planCatalog,
+        clusterProfiles
+      );
+
+    validateMapping(
+      mapping,
+      planCatalog
+    );
+
+    const output = {
+      generatedAt:
+        new Date().toISOString(),
+
+      totalPlans: 25,
+
+      totalClusters:
+        clusters.length,
+
+      categories: [
+        "FLEX",
+        "PLAY",
+        "FAMILY",
+        "BUSINESS",
+        "PRIME"
+      ],
+
+      mappings: mapping
+    };
+
+    fs.writeFileSync(
+      OUTPUT_PATH,
+      JSON.stringify(
+        output,
+        null,
+        2
+      ),
+      "utf8"
+    );
+
+    console.log("");
+    console.log(
+      "---------- VALIDATION ----------"
+    );
+
+    console.log(
+      "All plans mapped: YES"
+    );
+
+    console.log(
+      "Mapped plans: 25"
+    );
+
+    console.log(
+      "Unmapped plans: 0"
+    );
+
+    console.log(
+      "FLEX: 5/5"
+    );
+
+    console.log(
+      "PLAY: 5/5"
+    );
+
+    console.log(
+      "FAMILY: 5/5"
+    );
+
+    console.log(
+      "BUSINESS: 5/5"
+    );
+
+    console.log(
+      "PRIME: 5/5"
+    );
+
+    console.log("");
+
+    console.log(
+      `Output: ${OUTPUT_PATH}`
+    );
+
+    console.log("");
+
+    console.log(
+      "Plan-cluster mapping: PASS"
+    );
+
+    console.log(
+      "========================================"
+    );
+  } catch (error) {
+    console.error(
+      "PLAN MAPPING ERROR:"
+    );
+
+    console.error(
+      error.message
+    );
+
+    process.exit(1);
+  }
+}
+
+if (require.main === module) {
   main();
-} catch (error) {
-  console.error("");
-  console.error(
-    "PLAN MAPPING ERROR:"
-  );
-  console.error(
-    error.message
-  );
-
-  process.exit(1);
 }
+
+module.exports = {
+  createMapping,
+  validateMapping,
+  getClusterForCategory
+};
